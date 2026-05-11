@@ -5,7 +5,6 @@ import {
   getSortedRowModel,
   flexRender,
   createColumnHelper,
-  SortingState,
 } from '@tanstack/react-table';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
@@ -19,6 +18,7 @@ import { ProviderCell, UrlCell, LastProcessedCell, AutoProcessCell, ActionsCell 
 
 import type { SerializedMediaList } from 'shared/application/dtos';
 import type { ProviderType } from 'shared/domain/types';
+import type { SortingState } from '@tanstack/react-table';
 
 // Transform DTO type for table use - provider is validated by server
 type MediaList = Omit<SerializedMediaList, 'provider'> & {
@@ -34,6 +34,19 @@ interface Props {
 }
 
 const columnHelper = createColumnHelper<MediaList>();
+
+function getColumnMetaClassName(meta: unknown): string {
+  if (
+    typeof meta === 'object' &&
+    meta !== null &&
+    'className' in meta &&
+    typeof meta.className === 'string'
+  ) {
+    return meta.className;
+  }
+
+  return '';
+}
 
 export function ListsTable({
   lists,
@@ -223,9 +236,7 @@ export function ListsTable({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
-                    const metaClassName =
-                      (header.column.columnDef.meta as { className?: string } | undefined)
-                        ?.className ?? '';
+                    const metaClassName = getColumnMetaClassName(header.column.columnDef.meta);
                     return (
                       <TableHead key={header.id} className={metaClassName}>
                         {header.isPlaceholder ? null : header.column.getCanSort() ? (
@@ -265,9 +276,7 @@ export function ListsTable({
                   }
                 >
                   {row.getVisibleCells().map((cell) => {
-                    const metaClassName =
-                      (cell.column.columnDef.meta as { className?: string } | undefined)
-                        ?.className ?? '';
+                    const metaClassName = getColumnMetaClassName(cell.column.columnDef.meta);
                     return (
                       <TableCell key={cell.id} className={metaClassName}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
