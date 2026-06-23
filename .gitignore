@@ -57,3 +57,4 @@ CLAUDE.draft.md
 /.agents/
 skills-lock.json
 /AGENTS.md
+/.codegraph/
