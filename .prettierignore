@@ -11,6 +11,7 @@ yarn.lock
 # Generated files
 *.min.js
 *.min.css
+packages/server/migrations
 
 # Data
 data/

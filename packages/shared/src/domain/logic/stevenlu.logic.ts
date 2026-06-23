@@ -32,10 +32,22 @@ export const StevenLuVariants = {
   'imdb-min6': { label: 'IMDb 6+', file: 'movies-imdb-min6.json' },
   'imdb-min7': { label: 'IMDb 7+', file: 'movies-imdb-min7.json' },
   'imdb-min8': { label: 'IMDb 8+', file: 'movies-imdb-min8.json' },
-  'rottentomatoes-min50': { label: 'Rotten Tomatoes 50+', file: 'movies-rottentomatoes-min50.json' },
-  'rottentomatoes-min60': { label: 'Rotten Tomatoes 60+', file: 'movies-rottentomatoes-min60.json' },
-  'rottentomatoes-min70': { label: 'Rotten Tomatoes 70+', file: 'movies-rottentomatoes-min70.json' },
-  'rottentomatoes-min80': { label: 'Rotten Tomatoes 80+', file: 'movies-rottentomatoes-min80.json' },
+  'rottentomatoes-min50': {
+    label: 'Rotten Tomatoes 50+',
+    file: 'movies-rottentomatoes-min50.json',
+  },
+  'rottentomatoes-min60': {
+    label: 'Rotten Tomatoes 60+',
+    file: 'movies-rottentomatoes-min60.json',
+  },
+  'rottentomatoes-min70': {
+    label: 'Rotten Tomatoes 70+',
+    file: 'movies-rottentomatoes-min70.json',
+  },
+  'rottentomatoes-min80': {
+    label: 'Rotten Tomatoes 80+',
+    file: 'movies-rottentomatoes-min80.json',
+  },
 } as const satisfies Record<string, StevenLuVariantInfo>;
 
 export type StevenLuVariant = keyof typeof StevenLuVariants;
