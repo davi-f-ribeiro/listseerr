@@ -5,7 +5,11 @@
  * Shared between frontend and server VOs (DRY principle).
  */
 
-import { TraktChartTypeValues, type TraktChartType } from '../types/trakt.types';
+import {
+  TraktChartTypeValues,
+  type TraktChartType,
+  type TraktChartPeriod,
+} from '../types/trakt.types';
 import {
   createCaseInsensitiveEnumValidator,
   createEnumNormalizer,
@@ -77,3 +81,35 @@ const WRAPPED_CHART_TYPES: ReadonlySet<TraktChartType> = new Set([
 export function isWrappedChartType(chartType: TraktChartType): boolean {
   return WRAPPED_CHART_TYPES.has(chartType);
 }
+
+/**
+ * Chart types whose Trakt API endpoint requires a `:period` path segment
+ * (e.g. /movies/watched/weekly). The bare path 404s on Trakt.
+ * trending/popular/anticipated have no period and must NOT get one.
+ */
+const PERIOD_CHART_TYPES: ReadonlySet<TraktChartType> = new Set([
+  TraktChartTypeValues.FAVORITED,
+  TraktChartTypeValues.PLAYED,
+  TraktChartTypeValues.WATCHED,
+  TraktChartTypeValues.COLLECTED,
+]);
+
+/**
+ * Checks if a chart type's API endpoint needs a period path segment.
+ */
+export function chartTypeNeedsPeriod(chartType: TraktChartType): boolean {
+  return PERIOD_CHART_TYPES.has(chartType);
+}
+
+/**
+ * Display names for Trakt chart periods.
+ */
+export const TraktChartPeriodDisplayNames: Record<TraktChartPeriod, string> = {
+  daily: 'Daily',
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+  yearly: 'Yearly',
+  all: 'All Time',
+};
+
+export const getTraktChartPeriodDisplayName = createDisplayNameGetter(TraktChartPeriodDisplayNames);

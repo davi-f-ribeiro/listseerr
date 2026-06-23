@@ -9,26 +9,31 @@
 import {
   TraktChartTypeValues,
   TraktMediaTypeValues,
+  TraktChartPeriodValues,
   type TraktChartType,
   type TraktMediaType,
+  type TraktChartPeriod,
 } from '../types/trakt.types';
 
 // Build pattern dynamically from constants with named capture groups
 const chartTypes = Object.values(TraktChartTypeValues).join('|');
 const mediaTypes = Object.values(TraktMediaTypeValues).join('|');
+const periods = Object.values(TraktChartPeriodValues).join('|');
 
 /**
  * Regex pattern for Trakt chart URLs (display or API).
- * Matches: https://trakt.tv/movies/trending, https://api.trakt.tv/shows/popular, etc.
+ * Matches: https://trakt.tv/movies/trending, https://api.trakt.tv/shows/watched/weekly, etc.
+ * The period segment is optional (only period charts carry one).
  */
 export const TRAKT_CHART_URL_PATTERN = new RegExp(
-  `^https?://(?:www\\.)?(?:api\\.)?trakt\\.tv/(?<mediaType>${mediaTypes})/(?<chartType>${chartTypes})/?$`,
+  `^https?://(?:www\\.)?(?:api\\.)?trakt\\.tv/(?<mediaType>${mediaTypes})/(?<chartType>${chartTypes})(?:/(?<period>${periods}))?/?$`,
   'i'
 );
 
 export interface ParsedTraktChartUrl {
   mediaType: TraktMediaType;
   chartType: TraktChartType;
+  period?: TraktChartPeriod;
 }
 
 /**
@@ -43,11 +48,12 @@ export function parseTraktChartUrl(url: string): ParsedTraktChartUrl | null {
   const match = url.match(TRAKT_CHART_URL_PATTERN);
   if (!match?.groups) return null;
 
-  const { mediaType, chartType } = match.groups;
+  const { mediaType, chartType, period } = match.groups;
   if (!mediaType || !chartType) return null;
 
   return {
     mediaType: mediaType.toLowerCase() as TraktMediaType,
     chartType: chartType.toLowerCase() as TraktChartType,
+    ...(period ? { period: period.toLowerCase() as TraktChartPeriod } : {}),
   };
 }

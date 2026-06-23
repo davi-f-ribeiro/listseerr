@@ -1,6 +1,7 @@
 import { TraktChartTypeVO } from '@/server/domain/value-objects/trakt-chart-type.vo';
 import { TraktMediaTypeVO } from '@/server/domain/value-objects/trakt-media-type.vo';
 import type { MediaItemDTO } from 'shared/application/dtos';
+import { DEFAULT_TRAKT_CHART_PERIOD, type TraktChartPeriod } from 'shared/domain/types';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import { parseTraktChartUrl as parseTraktChartUrlPrimitive } from 'shared/domain/logic';
 
@@ -45,6 +46,7 @@ interface TraktWrappedChartItem {
 export function parseTraktChartUrl(url: string): {
   mediaType: TraktMediaTypeVO;
   chartType: TraktChartTypeVO;
+  period?: TraktChartPeriod;
 } {
   const parsed = parseTraktChartUrlPrimitive(url);
 
@@ -56,30 +58,44 @@ export function parseTraktChartUrl(url: string): {
   const mediaType = TraktMediaTypeVO.fromPersistence(parsed.mediaType);
   const chartType = TraktChartTypeVO.fromPersistence(parsed.chartType);
 
-  return { mediaType, chartType };
+  return { mediaType, chartType, period: parsed.period };
+}
+
+/**
+ * Resolve the period segment for a chart type.
+ * Period charts default to weekly (Trakt's default) when the URL omits it,
+ * which self-heals lists created before period support existed.
+ * Non-period charts never get one (Trakt 404s if they do).
+ */
+function resolvePeriodPath(chartType: TraktChartTypeVO, period?: TraktChartPeriod): string {
+  if (!chartType.needsPeriod()) return '';
+  return `/${period ?? DEFAULT_TRAKT_CHART_PERIOD}`;
 }
 
 /**
  * Convert a Trakt chart display URL to an API URL
- * Example: https://trakt.tv/movies/trending -> https://api.trakt.tv/movies/trending
+ * Example: https://trakt.tv/movies/watched/monthly -> https://api.trakt.tv/movies/watched/monthly
  */
 export function convertDisplayUrlToApiUrl(displayUrl: string): string {
-  const { mediaType, chartType } = parseTraktChartUrl(displayUrl);
-  return `https://api.trakt.tv/${mediaType.getValue()}/${chartType.getValue()}`;
+  const { mediaType, chartType, period } = parseTraktChartUrl(displayUrl);
+  const periodPath = resolvePeriodPath(chartType, period);
+  return `https://api.trakt.tv/${mediaType.getValue()}/${chartType.getValue()}${periodPath}`;
 }
 
 /**
  * Build Trakt API URL for chart endpoint
- * Example: buildTraktChartApiUrl(mediaTypeVO, chartTypeVO, 1, 20)
- *   -> https://api.trakt.tv/movies/trending?page=1&limit=20
+ * Example: buildTraktChartApiUrl(mediaTypeVO, chartTypeVO, 'weekly', 1, 20)
+ *   -> https://api.trakt.tv/movies/watched/weekly?page=1&limit=20
  */
 export function buildTraktChartApiUrl(
   mediaType: TraktMediaTypeVO,
   chartType: TraktChartTypeVO,
+  period: TraktChartPeriod | undefined,
   page: number = 1,
   limit?: number
 ): string {
-  let apiUrl = `https://api.trakt.tv/${mediaType.getValue()}/${chartType.getValue()}?page=${page}`;
+  const periodPath = resolvePeriodPath(chartType, period);
+  let apiUrl = `https://api.trakt.tv/${mediaType.getValue()}/${chartType.getValue()}${periodPath}?page=${page}`;
 
   if (limit) {
     apiUrl += `&limit=${limit}`;
@@ -99,15 +115,15 @@ export async function fetchTraktChart(
 ): Promise<MediaItemDTO[]> {
   try {
     // Parse the Trakt chart URL
-    const { mediaType, chartType } = parseTraktChartUrl(url);
+    const { mediaType, chartType, period } = parseTraktChartUrl(url);
     logger.debug(
-      { url, mediaType: mediaType.getValue(), chartType: chartType.getValue() },
+      { url, mediaType: mediaType.getValue(), chartType: chartType.getValue(), period },
       'Parsed Trakt chart URL'
     );
 
     // Build the API URL with pagination
     const limit = maxItems || 100;
-    const apiUrl = buildTraktChartApiUrl(mediaType, chartType, 1, limit);
+    const apiUrl = buildTraktChartApiUrl(mediaType, chartType, period, 1, limit);
 
     logger.debug({ apiUrl, limit }, 'Fetching items from Trakt chart API');
 

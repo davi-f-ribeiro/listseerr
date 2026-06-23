@@ -22,7 +22,7 @@ import {
   type TraktMediaType,
 } from 'shared/domain/types';
 import { isTraktChart, isStevenLu } from 'shared/domain/logic';
-import { TraktChartDisplayNames } from 'shared/domain/logic';
+import { TraktChartDisplayNames, TraktChartPeriodDisplayNames } from 'shared/domain/logic';
 import { parseTraktChartUrl } from 'shared/domain/logic';
 import { listNameSchema, maxItemsSchema } from 'shared/presentation/schemas';
 
@@ -74,12 +74,14 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
         return {
           mediaType: parsed.mediaType,
           chartType: parsed.chartType,
+          period: parsed.period,
         };
       }
     }
     return {
       mediaType: TraktMediaTypeValues.MOVIES,
       chartType: TraktChartTypeValues.TRENDING,
+      period: undefined,
     };
   })();
 
@@ -237,6 +239,25 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
                     Chart type cannot be changed. Create a new list if you need a different chart.
                   </p>
                 </div>
+
+                {/* Period (Read-only) - only for charts that carry a period */}
+                {parsedChartInfo.period && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-chartPeriod">Period (Read-only)</Label>
+                    <Select value={parsedChartInfo.period} disabled>
+                      <SelectTrigger className="cursor-not-allowed opacity-60">
+                        <SelectValue placeholder="Select period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(TraktChartPeriodDisplayNames).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </>
             )}
 

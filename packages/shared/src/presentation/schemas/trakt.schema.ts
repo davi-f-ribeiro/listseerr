@@ -6,14 +6,7 @@
  */
 
 import { z } from 'zod';
-import {
-  TraktChartTypeValues,
-  TraktMediaTypeValues,
-  type TraktClientIdPrimitive,
-  type TraktChartType,
-  type TraktMediaType,
-  type TraktConfigPrimitive,
-} from '../../domain/types/trakt.types';
+import type { TraktClientIdPrimitive, TraktConfigPrimitive } from '../../domain/types/trakt.types';
 
 /**
  * Trakt Client ID schema.
@@ -27,27 +20,6 @@ export const traktClientIdSchema: z.ZodType<TraktClientIdPrimitive> = z
     message:
       'Trakt Client ID must be exactly 64 hexadecimal characters (0-9, a-f). Get your Client ID from https://trakt.tv/oauth/applications',
   });
-
-/**
- * Trakt chart type schema.
- */
-export const traktChartTypeSchema: z.ZodType<TraktChartType> = z.enum([
-  TraktChartTypeValues.TRENDING,
-  TraktChartTypeValues.POPULAR,
-  TraktChartTypeValues.FAVORITED,
-  TraktChartTypeValues.PLAYED,
-  TraktChartTypeValues.WATCHED,
-  TraktChartTypeValues.COLLECTED,
-  TraktChartTypeValues.ANTICIPATED,
-] as const);
-
-/**
- * Trakt media type schema.
- */
-export const traktMediaTypeSchema: z.ZodType<TraktMediaType> = z.enum([
-  TraktMediaTypeValues.MOVIES,
-  TraktMediaTypeValues.SHOWS,
-] as const);
 
 /**
  * Trakt config schema.

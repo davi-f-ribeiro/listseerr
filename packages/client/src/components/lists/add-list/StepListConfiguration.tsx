@@ -3,6 +3,7 @@ import {
   TraktMediaTypeValues,
   type TraktChartType,
   type TraktMediaType,
+  type TraktChartPeriod,
 } from 'shared/domain/types';
 import {
   getProviderDisplayName,
@@ -11,8 +12,9 @@ import {
   isStevenLu,
   isAnilist,
   isMdbList,
+  chartTypeNeedsPeriod,
 } from 'shared/domain/logic';
-import { TraktChartDisplayNames } from 'shared/domain/logic';
+import { TraktChartDisplayNames, TraktChartPeriodDisplayNames } from 'shared/domain/logic';
 import { anilistStatusDisplayNames, type AnilistStatus } from 'shared/presentation/schemas';
 import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
@@ -33,6 +35,8 @@ interface StepListConfigurationProps {
   onMediaTypeChange: (mediaType: TraktMediaType) => void;
   selectedChartType: TraktChartType;
   onChartTypeChange: (chartType: TraktChartType) => void;
+  selectedPeriod: TraktChartPeriod;
+  onPeriodChange: (period: TraktChartPeriod) => void;
   // AniList-specific props
   anilistUsername: string;
   onAnilistUsernameChange: (username: string) => void;
@@ -59,6 +63,8 @@ export function StepListConfiguration({
   onMediaTypeChange,
   selectedChartType,
   onChartTypeChange,
+  selectedPeriod,
+  onPeriodChange,
   anilistUsername,
   onAnilistUsernameChange,
   anilistUsernameError,
@@ -146,6 +152,29 @@ export function StepListConfiguration({
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Period Dropdown - only for charts that require a period */}
+              {chartTypeNeedsPeriod(selectedChartType) && (
+                <div className="grid gap-2">
+                  <Label htmlFor="chartPeriod">Period</Label>
+                  <Select
+                    value={selectedPeriod}
+                    onValueChange={(v) => onPeriodChange(v as TraktChartPeriod)}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(TraktChartPeriodDisplayNames).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 

@@ -67,6 +67,10 @@ export class TraktChartTypeVO {
     return traktChartTypeLogic.isWrappedChartType(this.value);
   }
 
+  needsPeriod(): boolean {
+    return traktChartTypeLogic.chartTypeNeedsPeriod(this.value);
+  }
+
   equals(other: TraktChartTypeVO): boolean {
     return this.value === other.value;
   }

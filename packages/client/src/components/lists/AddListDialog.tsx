@@ -21,6 +21,7 @@ export function AddListDialog() {
     handleMaxItemsChange,
     handleMediaTypeChange,
     handleChartTypeChange,
+    handlePeriodChange,
     handleAnilistStatusChange,
     handleSeerrUserIdOverrideChange,
     handleUrlChange,
@@ -87,6 +88,8 @@ export function AddListDialog() {
             onMediaTypeChange={handleMediaTypeChange}
             selectedChartType={state.selectedChartType}
             onChartTypeChange={handleChartTypeChange}
+            selectedPeriod={state.selectedPeriod}
+            onPeriodChange={handlePeriodChange}
             anilistUsername={state.anilistUsername}
             onAnilistUsernameChange={handleAnilistUsernameChange}
             anilistUsernameError={state.anilistUsernameError}

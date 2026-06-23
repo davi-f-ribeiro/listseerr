@@ -26,6 +26,19 @@ export const TraktMediaTypeValues = {
 
 export type TraktMediaType = (typeof TraktMediaTypeValues)[keyof typeof TraktMediaTypeValues];
 
+export const TraktChartPeriodValues = {
+  DAILY: 'daily',
+  WEEKLY: 'weekly',
+  MONTHLY: 'monthly',
+  YEARLY: 'yearly',
+  ALL: 'all',
+} as const;
+
+export type TraktChartPeriod = (typeof TraktChartPeriodValues)[keyof typeof TraktChartPeriodValues];
+
+/** Trakt's own default period for period-based charts. */
+export const DEFAULT_TRAKT_CHART_PERIOD: TraktChartPeriod = TraktChartPeriodValues.WEEKLY;
+
 export interface TraktConfigPrimitive {
   clientId: TraktClientIdPrimitive;
 }
