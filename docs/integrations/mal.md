@@ -5,7 +5,7 @@
 
 ## Overview
 
-Integration of MAL into listseerr to allow users to sync their anime watchlists and request anime through Seerr.
+Sync a user's public MAL watchlist to Seerr as anime requests.
 
 ## API Research Summary
 

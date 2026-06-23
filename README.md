@@ -26,9 +26,9 @@
 
 ## 🧩 Overview
 
-Listseerr bridges the gap between list providers (Trakt, MDBList, etc.) and your request manager (Seerr). Point it at your favorite curated lists, and it will automatically create requests for every movie and show — on a schedule, hands-free.
+Listseerr connects list providers (Trakt, MDBList, and more) to Seerr. Point it at curated lists and it creates a Seerr request for each movie and show on a schedule.
 
-Filtering and curation stay where they belong: in the list provider. Listseerr focuses on doing one thing well — syncing lists to requests.
+Curate and filter in the list provider. Listseerr just syncs those lists to requests.
 
 ```
 ┌──────────┐     ┌───────────┐         ┌───────────┐     ┌───────────┐
@@ -44,25 +44,22 @@ Filtering and curation stay where they belong: in the list provider. Listseerr f
                                        └───────────┘
 ```
 
-**How it works:** Listseerr fetches media from your lists → creates requests in Seerr → you review and approve → your \*arr stack downloads the media. Previously rejected or already-available media is automatically skipped.
+**How it works:** Listseerr fetches media from your lists → creates requests in Seerr → you review and approve → your \*arr stack downloads the media. Listseerr skips media you already rejected or that is already in your library.
 
 > **Tip:** Create a dedicated Seerr user without auto-approve permissions so you can review requests before anything gets downloaded.
 
 ## 🔗 Supported Providers
 
-| Provider                         |   Status   | Requirements                                        |
-| :------------------------------- | :--------: | :-------------------------------------------------- |
-| [Trakt](https://trakt.tv)        |     ✅     | [Free API key](https://trakt.tv/oauth/applications) |
-| [MDBList](https://mdblist.com)   |     ✅     | [Free API key](https://mdblist.com/preferences/)    |
-| [StevenLu](https://stevenlu.com) |     ✅     | None                                                |
-| [AniList](https://anilist.co)    |     ✅     | None                                                |
-| StevenLu variations              |     ✅     | Popular, All, Metacritic/IMDb/RT thresholds         |
-| IMDB                             | 🗓️ Planned |                                                     |
-| Letterboxd                       | 🗓️ Planned |                                                     |
-| TheMovieDB                       | 🗓️ Planned |                                                     |
-| MyAnimeList                      | 🗓️ Planned |                                                     |
-
-All integrations use official APIs for reliability and speed.
+| Provider                                                                       |   Status   | Requirements                                        |
+| :----------------------------------------------------------------------------- | :--------: | :-------------------------------------------------- |
+| [Trakt](https://trakt.tv)                                                      |     ✅     | [Free API key](https://trakt.tv/oauth/applications) |
+| [MDBList](https://mdblist.com)                                                 |     ✅     | [Free API key](https://mdblist.com/preferences/)    |
+| [StevenLu (Popular, All, Metacritic/IMDb/RT thresholds)](https://stevenlu.com) |     ✅     | None                                                |
+| [AniList](https://anilist.co)                                                  |     ✅     | None                                                |
+| IMDB                                                                           | 🗓️ Planned |                                                     |
+| Letterboxd                                                                     | 🗓️ Planned |                                                     |
+| TheMovieDB                                                                     | 🗓️ Planned |                                                     |
+| MyAnimeList                                                                    | 🗓️ Planned |                                                     |
 
 **Want another provider?** [Open an issue →](https://github.com/guillevc/listseerr/issues/new)
 
@@ -99,14 +96,14 @@ Open [http://localhost:3000](http://localhost:3000), create your account, and st
 
 All configuration is done via environment variables:
 
-| Variable         | Description                                                                            | Default                  |
-| :--------------- | :------------------------------------------------------------------------------------- | :----------------------- |
-| `ENCRYPTION_KEY` | **Required.** Encryption key for sensitive data. Generate with `openssl rand -hex 32`  | —                        |
-| `PORT`           | Server port                                                                            | `3000`                   |
-| `DATABASE_PATH`  | Path to SQLite database                                                                | `/app/data/listseerr.db` |
-| `LOG_LEVEL`      | `debug` · `info` · `warn` · `error`                                                    | `info`                   |
-| `TZ`             | Timezone ([IANA format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)) | `UTC`                    |
-| `AUTH_DISABLED`  | Skip the in-app login (for use behind a trusted reverse proxy). Only enable on a trusted network. | `false` |
+| Variable         | Description                                                                                       | Default                  |
+| :--------------- | :------------------------------------------------------------------------------------------------ | :----------------------- |
+| `ENCRYPTION_KEY` | **Required.** Encryption key for sensitive data. Generate with `openssl rand -hex 32`             | —                        |
+| `PORT`           | Server port                                                                                       | `3000`                   |
+| `DATABASE_PATH`  | Path to SQLite database                                                                           | `/app/data/listseerr.db` |
+| `LOG_LEVEL`      | `debug` · `info` · `warn` · `error`                                                               | `info`                   |
+| `TZ`             | Timezone ([IANA format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))            | `UTC`                    |
+| `AUTH_DISABLED`  | Skip the in-app login (for use behind a trusted reverse proxy). Only enable on a trusted network. | `false`                  |
 
 ## 🔑 Password Recovery
 
@@ -119,17 +116,6 @@ bun run password:reset
 ```
 
 If you ran with `AUTH_DISABLED=true` and later turn it off, the auto-created `admin` account has no password — run the recovery script above to set one, then log in.
-
-## 🗺️ Roadmap
-
-- [x] Multiple provider support (Trakt, MDBList, StevenLu, AniList)
-- [x] Scheduled automatic processing
-- [x] Dark/Light theme
-- [x] Docker support
-- [ ] More list providers
-- [ ] Notifications
-
-Have an idea? [Open an issue →](https://github.com/guillevc/listseerr/issues/new)
 
 ## 💜 Support
 

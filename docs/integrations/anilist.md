@@ -5,7 +5,7 @@
 
 ## Overview
 
-Integration of AniList into listseerr to allow users to sync their anime watchlists and request anime through Seerr. This integration shares the anime ID cache with MAL integration.
+Sync a user's public AniList watchlist to Seerr as anime requests. Shares the anime ID cache with the MAL integration.
 
 ## API Research Summary
 
@@ -429,7 +429,7 @@ export type AnilistStatus = z.infer<typeof anilistStatusSchema>;
 | TMDB Coverage  | 7,711 entries                     | 7,678 entries               |
 | Config Storage | API Key in settings               | None needed                 |
 
-**Key Advantage:** AniList requires no API key configuration, making it simpler for users.
+**Key Advantage:** AniList needs no API key.
 
 ---
 
