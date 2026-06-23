@@ -13,6 +13,7 @@ export default [
       'eslint.config.ts',
       'packages/server/drizzle.config.ts',
       'packages/server/scripts/*.ts',
+      '.claude',
     ],
   },
   js.configs.recommended,
