@@ -4,7 +4,7 @@ import type { MediaItemDTO } from 'shared/application/dtos';
 export interface SeerrRequestPayload {
   mediaType: MediaType;
   mediaId: number;
-  seasons?: number[];
+  seasons?: number[] | 'all';
 }
 
 export interface SeerrRequestResponse {

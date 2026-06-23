@@ -37,9 +37,10 @@ async function requestToSeerr(item: MediaItemDTO, config: SeerrConfig): Promise<
       mediaId: item.tmdbId,
     };
 
-    // Add seasons array for TV shows (only when requesting first season)
-    if (mediaType.isTv() && config.tvSeasons === 'first') {
-      payload.seasons = [1];
+    // Add seasons for TV shows: [1] for first season, 'all' for every season.
+    // Omitting seasons entirely makes Seerr 500 ("Cannot read properties of undefined (reading 'filter')").
+    if (mediaType.isTv()) {
+      payload.seasons = config.tvSeasons === 'first' ? [1] : 'all';
     }
 
     const response = await fetch(`${config.url}/api/v1/request`, {
