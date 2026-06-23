@@ -15,6 +15,7 @@ import type {
 } from '../../domain/types/list.types';
 import { ProviderValues, type ProviderType } from '../../domain/types/provider.types';
 import { matchesProviderUrl, getProviderDisplayName } from '../../domain/logic/provider.logic';
+import { isKnownStevenLuUrl } from '../../domain/logic/stevenlu.logic';
 import { providerSchema } from './provider.schema';
 import { seerrUserIdSchema } from './seerr.schema';
 import { createNonEmptyStringSchema, createBoundedIntSchema } from './common.schema';
@@ -54,8 +55,18 @@ function validateUrlProviderMatch(
   // Skip validation if either url or provider is missing
   if (!url || !provider) return;
 
-  // StevenLu has a fixed URL, skip validation
-  if (provider === ProviderValues.STEVENLU) return;
+  // StevenLu: URL must be one of the known published variants (also closes
+  // SSRF, since the fetcher does a raw fetch on the stored URL).
+  if (provider === ProviderValues.STEVENLU) {
+    if (!isKnownStevenLuUrl(url)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'URL is not a recognized StevenLu list',
+        path: ['url'],
+      });
+    }
+    return;
+  }
 
   if (!matchesProviderUrl(provider, url)) {
     ctx.addIssue({
@@ -67,15 +78,21 @@ function validateUrlProviderMatch(
 }
 
 /**
+ * Hard ceiling on items a list can request. Also bounds how many items the
+ * StevenLu cache stores per variant (no list can ask for more than this).
+ */
+export const MAX_ITEMS = 500;
+
+/**
  * Max items schema.
- * Validates: positive integer between 1 and 500.
+ * Validates: positive integer between 1 and MAX_ITEMS.
  */
 export const maxItemsSchema: z.ZodType<MaxItemsPrimitive> = createBoundedIntSchema({
   min: 1,
-  max: 500,
+  max: MAX_ITEMS,
   default: 20,
   minMessage: 'Max items must be at least 1',
-  maxMessage: 'Max items cannot exceed 500',
+  maxMessage: `Max items cannot exceed ${MAX_ITEMS}`,
 });
 
 /**

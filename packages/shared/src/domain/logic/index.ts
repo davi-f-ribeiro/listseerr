@@ -17,3 +17,4 @@ export * from './media-availability.logic';
 export * from './seerr.logic';
 export * from './auth.logic';
 export * from './anilist.logic';
+export * from './stevenlu.logic';

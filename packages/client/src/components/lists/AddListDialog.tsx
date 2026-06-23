@@ -23,6 +23,7 @@ export function AddListDialog() {
     handleChartTypeChange,
     handlePeriodChange,
     handleAnilistStatusChange,
+    handleStevenLuVariantChange,
     handleSeerrUserIdOverrideChange,
     handleUrlChange,
     handleAnilistUsernameChange,
@@ -95,6 +96,8 @@ export function AddListDialog() {
             anilistUsernameError={state.anilistUsernameError}
             anilistStatus={state.anilistStatus}
             onAnilistStatusChange={handleAnilistStatusChange}
+            stevenLuVariant={state.stevenLuVariant}
+            onStevenLuVariantChange={handleStevenLuVariantChange}
             seerrUserIdOverride={state.seerrUserIdOverride}
             onSeerrUserIdOverrideChange={handleSeerrUserIdOverrideChange}
             onBack={goToStep1}

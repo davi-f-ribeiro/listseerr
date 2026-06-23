@@ -2,30 +2,41 @@ import { LoggerService } from '@/server/infrastructure/services/core/logger.adap
 import { db } from '@/server/infrastructure/db/client';
 import { providerCache } from '@/server/infrastructure/db/schema';
 import { eq } from 'drizzle-orm';
+import { isKnownStevenLuUrl } from 'shared/domain/logic';
+import { MAX_ITEMS } from 'shared/presentation/schemas';
 import type { StevenLuItem } from './types';
 import type { MediaItemDTO } from 'shared/application/dtos';
 
 const logger = new LoggerService('stevenlu-client');
 
-// StevenLu constants
-const STEVENLU_API_URL = 'https://s3.amazonaws.com/popular-movies/movies.json';
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 /**
- * Fetch the StevenLu popular movies list with 24-hour caching
+ * Fetch a StevenLu list variant with 24-hour caching, keyed by URL.
  *
+ * @param url - One of the known StevenLu variant URLs (validated against the
+ *   shared map; rejected otherwise to prevent fetching arbitrary hosts)
  * @param maxItems - Maximum number of items to return (takes first N items)
  * @returns Array of MediaItem objects
  */
-export async function fetchStevenLuList(maxItems: number | null): Promise<MediaItemDTO[]> {
-  try {
-    logger.info({ maxItems }, 'Fetching StevenLu popular movies list');
+export async function fetchStevenLuList(
+  url: string,
+  maxItems: number | null
+): Promise<MediaItemDTO[]> {
+  // Defense in depth: the API schema already restricts this, but the URL is
+  // read from storage (a separate trust boundary) and flows into a raw fetch.
+  if (!isKnownStevenLuUrl(url)) {
+    throw new Error(`Refusing to fetch unrecognized StevenLu URL: ${url}`);
+  }
 
-    // Check cache first
+  try {
+    logger.info({ url, maxItems }, 'Fetching StevenLu list');
+
+    // Check cache first (keyed by variant URL)
     const [cachedData] = await db
       .select()
       .from(providerCache)
-      .where(eq(providerCache.provider, 'stevenlu'))
+      .where(eq(providerCache.cacheKey, url))
       .limit(1);
 
     const now = new Date();
@@ -56,9 +67,9 @@ export async function fetchStevenLuList(maxItems: number | null): Promise<MediaI
 
     // Fetch fresh data if cache is invalid or doesn't exist
     if (items.length === 0) {
-      logger.info({ apiUrl: STEVENLU_API_URL }, 'Fetching from StevenLu API');
+      logger.info({ url }, 'Fetching from StevenLu API');
 
-      const response = await fetch(STEVENLU_API_URL, {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +82,7 @@ export async function fetchStevenLuList(maxItems: number | null): Promise<MediaI
           {
             status: response.status,
             statusText: response.statusText,
-            url: STEVENLU_API_URL,
+            url,
             responseBody: errorBody,
           },
           'StevenLu API request failed'
@@ -81,6 +92,10 @@ export async function fetchStevenLuList(maxItems: number | null): Promise<MediaI
 
       items = (await response.json()) as StevenLuItem[];
       logger.info({ count: items.length }, 'Received items from StevenLu API');
+
+      // Cap what we persist: no list can request more than MAX_ITEMS, so storing
+      // beyond that just bloats the cache (matters for the full all-movies dump).
+      items = items.slice(0, MAX_ITEMS);
 
       // Update cache
       const dataJson = JSON.stringify(items);
@@ -93,13 +108,13 @@ export async function fetchStevenLuList(maxItems: number | null): Promise<MediaI
             data: dataJson,
             cachedAt: now,
           })
-          .where(eq(providerCache.provider, 'stevenlu'));
+          .where(eq(providerCache.cacheKey, url));
 
         logger.info('Updated StevenLu cache');
       } else {
         // Insert new cache entry
         await db.insert(providerCache).values({
-          provider: 'stevenlu',
+          cacheKey: url,
           data: dataJson,
           cachedAt: now,
         });

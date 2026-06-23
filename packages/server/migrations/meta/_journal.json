@@ -43,6 +43,13 @@
       "when": 1785759962312,
       "tag": "0005_provider_cache_rename_column",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1782229013125,
+      "tag": "0006_stevenlu_variants",
+      "breakpoints": true
     }
   ]
 }

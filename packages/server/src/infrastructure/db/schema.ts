@@ -135,12 +135,11 @@ export const executionHistory = sqliteTable(
 );
 
 // Provider cache for external data (e.g., StevenLu JSON, anime-ids mapping)
-// Stores cached responses from providers with timestamps for cache invalidation
+// Stores cached responses keyed by an arbitrary string (the anime-ids constant,
+// or a StevenLu variant URL) with timestamps for cache invalidation.
 export const providerCache = sqliteTable('provider_cache', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  provider: text('provider', { enum: ['stevenlu', 'anime-ids'] })
-    .notNull()
-    .unique(),
+  cacheKey: text('cache_key').notNull().unique(),
   data: text('data').notNull(), // JSON string of the cached response
   cachedAt: integer('cached_at', { mode: 'timestamp' }).notNull(),
 });

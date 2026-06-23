@@ -15,6 +15,7 @@ import {
   chartTypeNeedsPeriod,
 } from 'shared/domain/logic';
 import { TraktChartDisplayNames, TraktChartPeriodDisplayNames } from 'shared/domain/logic';
+import { StevenLuVariants, type StevenLuVariant } from 'shared/domain/logic';
 import { anilistStatusDisplayNames, type AnilistStatus } from 'shared/presentation/schemas';
 import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
@@ -43,6 +44,9 @@ interface StepListConfigurationProps {
   anilistUsernameError: string | null;
   anilistStatus: AnilistStatus;
   onAnilistStatusChange: (status: AnilistStatus) => void;
+  // StevenLu-specific props
+  stevenLuVariant: StevenLuVariant;
+  onStevenLuVariantChange: (variant: StevenLuVariant) => void;
   seerrUserIdOverride: string;
   onSeerrUserIdOverrideChange: (value: string) => void;
   onBack: () => void;
@@ -70,6 +74,8 @@ export function StepListConfiguration({
   anilistUsernameError,
   anilistStatus,
   onAnilistStatusChange,
+  stevenLuVariant,
+  onStevenLuVariantChange,
   seerrUserIdOverride,
   onSeerrUserIdOverrideChange,
   onBack,
@@ -223,6 +229,29 @@ export function StepListConfiguration({
                 </Select>
               </div>
             </>
+          )}
+
+          {/* StevenLu variant selection */}
+          {isStevenLu(provider) && (
+            <div className="grid gap-2">
+              <Label htmlFor="stevenLuVariant">List</Label>
+              <Select
+                value={stevenLuVariant}
+                onValueChange={(v) => onStevenLuVariantChange(v as StevenLuVariant)}
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a list" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(StevenLuVariants).map(([value, { label }]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {/* URL field for Trakt List and MDBList (not for Trakt Chart, StevenLu, or AniList) */}

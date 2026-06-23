@@ -81,7 +81,7 @@ class AnimeIdCache implements IAnimeIdCache {
       const [cachedData] = await db
         .select()
         .from(providerCache)
-        .where(eq(providerCache.provider, CACHE_PROVIDER_KEY))
+        .where(eq(providerCache.cacheKey, CACHE_PROVIDER_KEY))
         .limit(1);
 
       const now = new Date();
@@ -124,12 +124,12 @@ class AnimeIdCache implements IAnimeIdCache {
               data: dataJson,
               cachedAt: now,
             })
-            .where(eq(providerCache.provider, CACHE_PROVIDER_KEY));
+            .where(eq(providerCache.cacheKey, CACHE_PROVIDER_KEY));
 
           logger.info('Updated anime ID cache in database');
         } else {
           await db.insert(providerCache).values({
-            provider: CACHE_PROVIDER_KEY,
+            cacheKey: CACHE_PROVIDER_KEY,
             data: dataJson,
             cachedAt: now,
           });
@@ -243,7 +243,7 @@ class AnimeIdCache implements IAnimeIdCache {
     this.malToTmdb.clear();
 
     // Delete existing cache to force fresh fetch
-    await db.delete(providerCache).where(eq(providerCache.provider, CACHE_PROVIDER_KEY));
+    await db.delete(providerCache).where(eq(providerCache.cacheKey, CACHE_PROVIDER_KEY));
 
     await this.initialize();
   }

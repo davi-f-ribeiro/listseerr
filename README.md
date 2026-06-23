@@ -56,7 +56,7 @@ Filtering and curation stay where they belong: in the list provider. Listseerr f
 | [MDBList](https://mdblist.com)   |     ✅     | [Free API key](https://mdblist.com/preferences/)    |
 | [StevenLu](https://stevenlu.com) |     ✅     | None                                                |
 | [AniList](https://anilist.co)    |     ✅     | None                                                |
-| StevenLu variations              | 🗓️ Planned |                                                     |
+| StevenLu variations              |     ✅     | Popular, All, Metacritic/IMDb/RT thresholds         |
 | IMDB                             | 🗓️ Planned |                                                     |
 | Letterboxd                       | 🗓️ Planned |                                                     |
 | TheMovieDB                       | 🗓️ Planned |                                                     |

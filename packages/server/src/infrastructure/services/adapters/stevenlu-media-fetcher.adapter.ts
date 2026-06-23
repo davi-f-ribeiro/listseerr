@@ -10,10 +10,9 @@ import { fetchStevenLuList } from '@/server/infrastructure/services/external/ste
  * StevenLu is a public API (no auth required) that returns popular movies.
  */
 export class StevenLuMediaFetcher implements IMediaFetcher {
-  async fetchItems(_url: string, maxItems: number): Promise<MediaItemVO[]> {
-    // StevenLu doesn't require authentication or URL
-    // _url parameter is ignored (API has no URL parameter)
-    const rawItems = await fetchStevenLuList(maxItems);
+  async fetchItems(url: string, maxItems: number): Promise<MediaItemVO[]> {
+    // url is the selected StevenLu variant URL (validated in the client)
+    const rawItems = await fetchStevenLuList(url, maxItems);
 
     // Transform raw items to domain MediaItem value objects
     return rawItems.map((item) =>

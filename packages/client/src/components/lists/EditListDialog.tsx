@@ -24,6 +24,7 @@ import {
 import { isTraktChart, isStevenLu } from 'shared/domain/logic';
 import { TraktChartDisplayNames, TraktChartPeriodDisplayNames } from 'shared/domain/logic';
 import { parseTraktChartUrl } from 'shared/domain/logic';
+import { StevenLuVariants, stevenLuVariantFromUrl } from 'shared/domain/logic';
 import { listNameSchema, maxItemsSchema } from 'shared/presentation/schemas';
 
 interface EditListDialogProps {
@@ -260,6 +261,32 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
                 )}
               </>
             )}
+
+            {/* StevenLu variant (Read-only) */}
+            {isStevenLu(list.provider) &&
+              (() => {
+                const variant = stevenLuVariantFromUrl(list.url);
+                return (
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-stevenLuVariant">List (Read-only)</Label>
+                    <Select value={variant ?? undefined} disabled>
+                      <SelectTrigger className="cursor-not-allowed opacity-60">
+                        <SelectValue placeholder="Unknown list" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(StevenLuVariants).map(([value, { label }]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted">
+                      List cannot be changed. Create a new list if you need a different one.
+                    </p>
+                  </div>
+                );
+              })()}
 
             {/* URL field for Trakt List and MDBList only (Read-only) */}
             {!isTraktChart(list.provider) && !isStevenLu(list.provider) && (
