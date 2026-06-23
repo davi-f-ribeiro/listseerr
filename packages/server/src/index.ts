@@ -2,12 +2,15 @@ import { LoggerService } from './infrastructure/services/core/logger.adapter';
 import { env } from './env';
 import { db } from './infrastructure/db/client';
 import { runMigrations } from './bootstrap/database';
+import { seedDefaultUser } from './bootstrap/seed';
 import { createHttpApp } from './bootstrap/http-server';
 import { initializeScheduler } from './bootstrap/scheduler';
 
 const logger = new LoggerService('server');
 
 runMigrations();
+
+await seedDefaultUser();
 
 const app = createHttpApp();
 

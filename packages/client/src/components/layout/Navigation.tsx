@@ -171,7 +171,7 @@ function SeerrSection({
 }
 
 function UserDropdown() {
-  const { user, logout } = useAuth();
+  const { user, logout, authDisabled } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -189,23 +189,29 @@ function UserDropdown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link to="/settings/account">
-            <User className="mr-2 h-4 w-4" />
-            Account
-          </Link>
-        </DropdownMenuItem>
+        {!authDisabled && (
+          <DropdownMenuItem asChild>
+            <Link to="/settings/account">
+              <User className="mr-2 h-4 w-4" />
+              Account
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link to="/settings/general">
             <Settings className="mr-2 h-4 w-4" />
             Settings
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Log out
-        </DropdownMenuItem>
+        {!authDisabled && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -244,7 +250,7 @@ function MobileNav({
   seerrUrl?: string;
   seerrRequests: SeerrRequests | null;
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, authDisabled } = useAuth();
   const navigate = useNavigate();
   const closeMenu = () => onOpenChange(false);
 
@@ -279,19 +285,23 @@ function MobileNav({
             mobile
           />
           <div className="mt-4 flex flex-col gap-2 border-t pt-4">
-            <div className="px-3 py-2 text-sm font-medium text-muted">{user?.username}</div>
-            <Button
-              variant="ghost"
-              size="default"
-              asChild
-              className="w-full justify-start"
-              onClick={closeMenu}
-            >
-              <Link to="/settings/account">
-                <User className="mr-2 h-4 w-4" />
-                Account
-              </Link>
-            </Button>
+            {!authDisabled && (
+              <div className="px-3 py-2 text-sm font-medium text-muted">{user?.username}</div>
+            )}
+            {!authDisabled && (
+              <Button
+                variant="ghost"
+                size="default"
+                asChild
+                className="w-full justify-start"
+                onClick={closeMenu}
+              >
+                <Link to="/settings/account">
+                  <User className="mr-2 h-4 w-4" />
+                  Account
+                </Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="default"
@@ -304,15 +314,17 @@ function MobileNav({
                 Settings
               </Link>
             </Button>
-            <Button
-              variant="ghost"
-              size="default"
-              onClick={handleLogout}
-              className="w-full justify-start"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </Button>
+            {!authDisabled && (
+              <Button
+                variant="ghost"
+                size="default"
+                onClick={handleLogout}
+                className="w-full justify-start"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </Button>
+            )}
           </div>
           <div className="mt-4 border-t pt-4">
             <Button

@@ -1,4 +1,5 @@
 import { router, publicProcedure } from '@/server/presentation/trpc/context';
+import { env } from '@/server/env';
 import type { IUseCase } from '@/server/application/use-cases/use-case.interface';
 import type { CheckSetupStatusResponse } from 'shared/application/dtos';
 import type {
@@ -52,7 +53,8 @@ export function createAuthRouter(deps: AuthRouterDeps) {
      * Used to determine if redirect to /register is needed
      */
     checkSetupStatus: publicProcedure.query(async () => {
-      return await deps.checkSetupStatusUseCase.execute();
+      const result = await deps.checkSetupStatusUseCase.execute();
+      return { ...result, authDisabled: env.AUTH_DISABLED };
     }),
 
     /**

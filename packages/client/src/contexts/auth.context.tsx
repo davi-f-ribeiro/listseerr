@@ -36,6 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [isLoading, setIsLoading] = useState(true);
 
+  // Same query RootComponent uses (react-query dedupes by key)
+  const setupStatusQuery = trpc.auth.checkSetupStatus.useQuery();
+  const authDisabled = setupStatusQuery.data?.authDisabled ?? false;
+
   const logoutMutation = trpc.auth.logout.useMutation();
   const validateSessionQuery = trpc.auth.validateSession.useQuery(
     { token: sessionToken ?? '' },
@@ -104,12 +108,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isLoading,
-      isAuthenticated: !!user,
+      isAuthenticated: !!user || authDisabled,
+      authDisabled,
       login,
       logout,
       sessionToken,
     }),
-    [user, isLoading, login, logout, sessionToken]
+    [user, isLoading, authDisabled, login, logout, sessionToken]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

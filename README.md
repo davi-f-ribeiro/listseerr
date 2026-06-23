@@ -106,6 +106,7 @@ All configuration is done via environment variables:
 | `DATABASE_PATH`  | Path to SQLite database                                                                | `/app/data/listseerr.db` |
 | `LOG_LEVEL`      | `debug` · `info` · `warn` · `error`                                                    | `info`                   |
 | `TZ`             | Timezone ([IANA format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)) | `UTC`                    |
+| `AUTH_DISABLED`  | Skip the in-app login (for use behind a trusted reverse proxy). Only enable on a trusted network. | `false` |
 
 ## 🔑 Password Recovery
 
@@ -116,6 +117,8 @@ docker exec -it listseerr bun /app/dist/reset-password.js
 # Local
 bun run password:reset
 ```
+
+If you ran with `AUTH_DISABLED=true` and later turn it off, the auto-created `admin` account has no password — run the recovery script above to set one, then log in.
 
 ## 🗺️ Roadmap
 

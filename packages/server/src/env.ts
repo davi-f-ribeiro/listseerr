@@ -15,6 +15,13 @@ export const env = createEnv({
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('debug'),
     ENCRYPTION_KEY: z.string().min(1, 'ENCRYPTION_KEY is required for encrypting API keys'),
     TZ: z.string().default(Intl.DateTimeFormat().resolvedOptions().timeZone),
+    // When true, skips the in-app login. Intended for running behind a trusted
+    // reverse proxy that already enforces authentication. The API is
+    // unauthenticated either way, so only enable this on a trusted network.
+    AUTH_DISABLED: z
+      .string()
+      .default('false')
+      .transform((v) => v === 'true'),
   },
 
   /**
