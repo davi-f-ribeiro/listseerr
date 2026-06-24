@@ -201,15 +201,15 @@ export function SeerrSettings() {
             }
           />
           <p className="text-xs text-muted">
-            Seerr user ID used for all requests. Tip: use a user without auto-approve to review
-            requests first. Can be overridden per list in list settings.
+            Seerr user ID for all requests. Tip: pick a user without auto-approve to review requests
+            first. Override per list in its settings.
           </p>
         </div>
 
         <div className="grid gap-2">
           <Label>TV show seasons</Label>
           <p className="text-xs text-muted">
-            Choose whether to request only the first season or all available seasons for TV shows.
+            Request only the first season, or all available seasons.
           </p>
           <RadioGroup
             value={state.tvSeasons}

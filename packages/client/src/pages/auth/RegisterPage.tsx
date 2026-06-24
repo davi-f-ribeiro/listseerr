@@ -80,7 +80,7 @@ export function RegisterPage() {
         <Card className="w-full">
           <CardHeader className="text-center">
             <CardTitle>Create Account</CardTitle>
-            <CardDescription>Set up your Listseerr account to get started</CardDescription>
+            <CardDescription>Set up your Listseerr account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">

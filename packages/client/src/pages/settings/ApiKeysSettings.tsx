@@ -149,7 +149,7 @@ export function ApiKeysSettings() {
         isConfigured={!!traktConfig?.clientId}
         isSaving={isSavingTrakt}
         isDisabled={saveTraktMutation.isPending || deleteTraktMutation.isPending}
-        disabledWarning="Disabled — Trakt lists won't be processed."
+        disabledWarning="Disabled. Trakt lists won't be processed."
       />
 
       <ProviderConfigCard
@@ -167,7 +167,7 @@ export function ApiKeysSettings() {
         isConfigured={!!mdbListConfig?.apiKey}
         isSaving={isSavingMdbList}
         isDisabled={saveMdbListMutation.isPending || deleteMdbListMutation.isPending}
-        disabledWarning="Disabled — MDBList lists won't be processed."
+        disabledWarning="Disabled. MDBList lists won't be processed."
       />
 
       {/* Future API Keys can be added here */}

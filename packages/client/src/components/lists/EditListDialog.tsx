@@ -217,7 +217,7 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
                     </Button>
                   </div>
                   <p className="text-xs text-muted">
-                    Media type cannot be changed. Create a new list if you need a different type.
+                    Locked after creation. Make a new list to change it.
                   </p>
                 </div>
 
@@ -237,7 +237,7 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted">
-                    Chart type cannot be changed. Create a new list if you need a different chart.
+                    Locked after creation. Make a new list to change it.
                   </p>
                 </div>
 
@@ -282,7 +282,7 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted">
-                      List cannot be changed. Create a new list if you need a different one.
+                      Locked after creation. Make a new list to change it.
                     </p>
                   </div>
                 );
@@ -296,7 +296,7 @@ export function EditListDialog({ list, open, onOpenChange }: EditListDialogProps
                   {list.displayUrl || list.url}
                 </div>
                 <p className="text-xs text-muted">
-                  URL cannot be changed. Create a new list if you need a different URL.
+                  Locked after creation. Make a new list to change it.
                 </p>
               </div>
             )}
