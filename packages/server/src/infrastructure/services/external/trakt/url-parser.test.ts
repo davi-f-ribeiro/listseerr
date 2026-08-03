@@ -133,9 +133,7 @@ describe('convertDisplayUrlToApiUrl', () => {
     const input = 'https://trakt.tv/users/hdlists/watchlist?display=movie&sort=added,asc';
     const result = convertDisplayUrlToApiUrl(input);
 
-    expect(result.apiUrl).toBe(
-      'https://api.trakt.tv/users/hdlists/watchlist/movies/added/asc'
-    );
+    expect(result.apiUrl).toBe('https://api.trakt.tv/users/hdlists/watchlist/movies/added/asc');
     expect(result.displayUrl).toBe(
       'https://trakt.tv/users/hdlists/watchlist?display=movie&sort=added,asc'
     );
@@ -145,11 +143,7 @@ describe('convertDisplayUrlToApiUrl', () => {
     const input = 'https://trakt.tv/users/hdlists/watchlist';
     const result = convertDisplayUrlToApiUrl(input);
 
-    expect(result.apiUrl).toBe(
-      'https://api.trakt.tv/users/hdlists/watchlist'
-    );
-    expect(result.displayUrl).toBe(
-      'https://trakt.tv/users/hdlists/watchlist'
-    );
+    expect(result.apiUrl).toBe('https://api.trakt.tv/users/hdlists/watchlist');
+    expect(result.displayUrl).toBe('https://trakt.tv/users/hdlists/watchlist');
   });
 });
