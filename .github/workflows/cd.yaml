@@ -3,6 +3,7 @@
 name: cd
 
 on:
+  workflow_dispatch:
   push:
     branches: [master, next]
     tags: ['v*']

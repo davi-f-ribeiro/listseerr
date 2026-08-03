@@ -55,6 +55,13 @@ describe('parseTraktUrl', () => {
   it('throws error for invalid URL format', () => {
     expect(() => parseTraktUrl('https://trakt.tv/invalid/path')).toThrow();
   });
+
+  it('extracts username and watchlist from basic watchlist URL', () => {
+    const result = parseTraktUrl('https://trakt.tv/users/hdlists/watchlist');
+    expect(result.username).toBe('hdlists');
+    expect(result.isWatchlist).toBe(true);
+    expect(result.listSlug).toBe('');
+  });
 });
 
 describe('convertDisplayUrlToApiUrl', () => {
@@ -119,6 +126,30 @@ describe('convertDisplayUrlToApiUrl', () => {
 
     expect(result.apiUrl).toBe(
       'https://api.trakt.tv/users/hdlists/lists/fantasy-movies/items/show/rank/desc'
+    );
+  });
+
+  it('converts watchlist URL to correct API path', () => {
+    const input = 'https://trakt.tv/users/hdlists/watchlist?display=movie&sort=added,asc';
+    const result = convertDisplayUrlToApiUrl(input);
+
+    expect(result.apiUrl).toBe(
+      'https://api.trakt.tv/users/hdlists/watchlist/movies/added/asc'
+    );
+    expect(result.displayUrl).toBe(
+      'https://trakt.tv/users/hdlists/watchlist?display=movie&sort=added,asc'
+    );
+  });
+
+  it('converts base watchlist URL to base API path without params', () => {
+    const input = 'https://trakt.tv/users/hdlists/watchlist';
+    const result = convertDisplayUrlToApiUrl(input);
+
+    expect(result.apiUrl).toBe(
+      'https://api.trakt.tv/users/hdlists/watchlist'
+    );
+    expect(result.displayUrl).toBe(
+      'https://trakt.tv/users/hdlists/watchlist'
     );
   });
 });
