@@ -167,13 +167,14 @@ Instead of using the ARM API at runtime, we cache the source data locally (same 
 ```
 
 **Why Local Cache (not ARM API):**
-| Aspect | ARM API | Local Cache |
-|--------|---------|-------------|
-| Runtime dependency | External API | Self-contained |
-| Speed | Network calls | In-memory lookup |
-| Reliability | Can fail/rate limit | Always available |
-| Pattern | New | Existing (StevenLu) |
-| Data | Same source | Same source |
+
+| Aspect             | ARM API             | Local Cache         |
+| ------------------ | ------------------- | ------------------- |
+| Runtime dependency | External API        | Self-contained      |
+| Speed              | Network calls       | In-memory lookup    |
+| Reliability        | Can fail/rate limit | Always available    |
+| Pattern            | New                 | Existing (StevenLu) |
+| Data               | Same source         | Same source         |
 
 ---
 
