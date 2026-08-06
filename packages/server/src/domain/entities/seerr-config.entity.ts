@@ -141,12 +141,4 @@ export class SeerrConfig {
       'X-Api-User': this._userIdSeerr.getValue().toString(),
     };
   }
-
-  /**
-   * Get the status endpoint URL
-   * Encapsulates endpoint construction logic
-   */
-  getStatusEndpoint(): string {
-    return `${this._url.getValue()}/api/v1/status`;
-  }
 }

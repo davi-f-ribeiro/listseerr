@@ -9,11 +9,20 @@ export class HttpSeerrConnectionTester implements ISeerrConnectionTester {
     message: string;
   }> {
     try {
-      const response = await fetch(`${url}/api/v1/status`, {
+      // /api/v1/status is public, so it cannot tell a valid API key from a bogus one.
+      // /api/v1/auth/me requires authentication and returns the key's owner.
+      const response = await fetch(`${url}/api/v1/auth/me`, {
         headers: {
           'X-Api-Key': apiKey,
         },
       });
+
+      if (response.status === 401 || response.status === 403) {
+        return {
+          success: false,
+          message: 'Connected to Seerr, but the API key was rejected.',
+        };
+      }
 
       if (!response.ok) {
         return {
