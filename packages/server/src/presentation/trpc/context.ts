@@ -82,7 +82,12 @@ const t = initTRPC.context<Context>().create({
 
 // Granular error-to-code mapping for domain errors
 type TRPCErrorCode =
-  'BAD_REQUEST' | 'NOT_FOUND' | 'FORBIDDEN' | 'CONFLICT' | 'UNAUTHORIZED' | 'INTERNAL_SERVER_ERROR';
+  | 'BAD_REQUEST'
+  | 'NOT_FOUND'
+  | 'FORBIDDEN'
+  | 'CONFLICT'
+  | 'UNAUTHORIZED'
+  | 'INTERNAL_SERVER_ERROR';
 const errorCodeMap: Record<string, TRPCErrorCode> = {
   // Validation errors -> BAD_REQUEST
   InvalidProviderError: 'BAD_REQUEST',
