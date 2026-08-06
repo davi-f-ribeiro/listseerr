@@ -13,8 +13,15 @@
 export interface AnimeIdEntry {
   mal_id?: number;
   anilist_id?: number;
-  themoviedb_id?: number;
-  thetvdb_id?: number;
+  /**
+   * Keyed by TMDB media type, e.g. `{ tv: 26209 }` or `{ movie: [1390599] }`.
+   * Absent when the anime has no TMDB mapping.
+   */
+  themoviedb_id?: {
+    tv?: number | number[];
+    movie?: number | number[];
+  };
+  tvdb_id?: number;
   type?: string; // 'TV', 'Movie', 'OVA', 'ONA', 'Special', etc.
 }
 

@@ -10,6 +10,7 @@ import { LoggerService } from '@/server/infrastructure/services/core/logger.adap
 import { db } from '@/server/infrastructure/db/client';
 import { providerCache } from '@/server/infrastructure/db/schema';
 import { eq } from 'drizzle-orm';
+import { toTmdbLookupResult } from './mapping';
 import type { AnimeIdEntry, IAnimeIdCache, TmdbLookupResult } from './types';
 
 const logger = new LoggerService('anime-id-cache');
@@ -21,23 +22,6 @@ const CACHE_PROVIDER_KEY = 'anime-ids';
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const REQUEST_TIMEOUT_MS = 60000; // 60 seconds timeout for large file download
 const MAX_INIT_ATTEMPTS = 3; // Maximum initialization retry attempts
-
-/**
- * Maps Fribb type values to media types
- */
-function mapTypeToMediaType(type?: string): string {
-  if (!type) return 'tv'; // Default to TV if unknown
-
-  const normalizedType = type.toUpperCase();
-
-  // Movie types
-  if (normalizedType === 'MOVIE') {
-    return 'movie';
-  }
-
-  // TV types (TV, OVA, ONA, Special, TV_SHORT)
-  return 'tv';
-}
 
 class AnimeIdCache implements IAnimeIdCache {
   private anilistToTmdb = new Map<number, TmdbLookupResult>();
@@ -201,19 +185,15 @@ class AnimeIdCache implements IAnimeIdCache {
 
     for (const entry of entries) {
       // Only add mappings where TMDB ID exists
-      if (entry.themoviedb_id) {
-        const result: TmdbLookupResult = {
-          tmdbId: entry.themoviedb_id,
-          type: mapTypeToMediaType(entry.type),
-        };
+      const result = toTmdbLookupResult(entry);
+      if (!result) continue;
 
-        if (entry.anilist_id) {
-          this.anilistToTmdb.set(entry.anilist_id, result);
-        }
+      if (entry.anilist_id) {
+        this.anilistToTmdb.set(entry.anilist_id, result);
+      }
 
-        if (entry.mal_id) {
-          this.malToTmdb.set(entry.mal_id, result);
-        }
+      if (entry.mal_id) {
+        this.malToTmdb.set(entry.mal_id, result);
       }
     }
   }
