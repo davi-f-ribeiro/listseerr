@@ -1,3 +1,4 @@
+import type { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
@@ -27,6 +28,7 @@ export class ProcessingExecution {
   private _itemsSkippedAvailable: number;
   private _itemsSkippedPreviouslyRequested: number;
   private _errorMessage: string | null;
+  private _failedItems: Array<{ item: MediaItemVO; error: string }> | null;
 
   constructor(params: {
     id: number;
@@ -42,6 +44,7 @@ export class ProcessingExecution {
     itemsSkippedAvailable: number;
     itemsSkippedPreviouslyRequested: number;
     errorMessage: string | null;
+    failedItems: Array<{ item: MediaItemVO; error: string }> | null;
   }) {
     this._id = params.id;
     this._listId = params.listId;
@@ -56,6 +59,7 @@ export class ProcessingExecution {
     this._itemsSkippedAvailable = params.itemsSkippedAvailable;
     this._itemsSkippedPreviouslyRequested = params.itemsSkippedPreviouslyRequested;
     this._errorMessage = params.errorMessage;
+    this._failedItems = params.failedItems;
   }
 
   /**
@@ -80,6 +84,7 @@ export class ProcessingExecution {
       itemsSkippedAvailable: 0,
       itemsSkippedPreviouslyRequested: 0,
       errorMessage: null,
+      failedItems: null,
     });
   }
 
@@ -136,6 +141,14 @@ export class ProcessingExecution {
     return this._errorMessage;
   }
 
+  /**
+   * Get failed items (items that failed during request to Seerr)
+   * Returns null for executions before this feature was added
+   */
+  get failedItems(): Array<{ item: MediaItemVO; error: string }> | null {
+    return this._failedItems;
+  }
+
   // Business methods
 
   /**
@@ -147,7 +160,8 @@ export class ProcessingExecution {
     itemsRequested: number,
     itemsFailed: number,
     itemsSkippedAvailable: number,
-    itemsSkippedPreviouslyRequested: number
+    itemsSkippedPreviouslyRequested: number,
+    failedItems: Array<{ item: MediaItemVO; error: string }> | null = null
   ): void {
     if (this._status.isCompleted()) {
       throw new InvalidExecutionStatusTransitionError(this._status.getValue(), 'success');
@@ -161,6 +175,7 @@ export class ProcessingExecution {
     this._itemsSkippedAvailable = itemsSkippedAvailable;
     this._itemsSkippedPreviouslyRequested = itemsSkippedPreviouslyRequested;
     this._errorMessage = null;
+    this._failedItems = failedItems;
   }
 
   /**
@@ -180,6 +195,7 @@ export class ProcessingExecution {
     this._itemsFailed = 0;
     this._itemsSkippedAvailable = 0;
     this._itemsSkippedPreviouslyRequested = 0;
+    this._failedItems = null;
   }
 
   /**

@@ -23,3 +23,8 @@ export interface GetExecutionHistoryCommand {
   limit: number;
   userId: number;
 }
+
+export interface RetryPartialProcessingCommand {
+  executionId: number;
+  userId: number;
+}

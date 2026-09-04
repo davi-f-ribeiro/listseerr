@@ -5,17 +5,20 @@ import type {
   ProcessListCommand,
   ProcessBatchCommand,
   GetExecutionHistoryCommand,
+  RetryPartialProcessingCommand,
 } from 'shared/application/dtos';
 import type {
   ProcessListResponse,
   ProcessBatchResponse,
   GetExecutionHistoryResponse,
+  RetryPartialProcessingResponse,
 } from 'shared/application/dtos';
 
 export interface ProcessingRouterDeps {
   processListUseCase: IUseCase<ProcessListCommand, ProcessListResponse>;
   processBatchUseCase: IUseCase<ProcessBatchCommand, ProcessBatchResponse>;
   getExecutionHistoryUseCase: IUseCase<GetExecutionHistoryCommand, GetExecutionHistoryResponse>;
+  retryPartialProcessingUseCase: IUseCase<RetryPartialProcessingCommand, RetryPartialProcessingResponse>;
 }
 
 /**
@@ -59,6 +62,19 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
         return await deps.getExecutionHistoryUseCase.execute({
           listId: input.listId,
           limit: input.limit,
+          userId: ctx.userId,
+        });
+      }),
+
+    retryPartial: publicProcedure
+      .input(
+        z.object({
+          executionId: z.number(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        return await deps.retryPartialProcessingUseCase.execute({
+          executionId: input.executionId,
           userId: ctx.userId,
         });
       }),

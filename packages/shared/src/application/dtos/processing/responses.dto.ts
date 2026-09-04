@@ -31,3 +31,9 @@ export interface ProcessBatchResponse {
 export interface GetExecutionHistoryResponse {
   executions: ExecutionHistoryDTO[];
 }
+
+export interface RetryPartialProcessingResponse {
+  execution: ExecutionHistoryDTO;
+  itemsSkippedPreviouslyRequested: number;
+  itemsSkippedAvailable: number;
+}

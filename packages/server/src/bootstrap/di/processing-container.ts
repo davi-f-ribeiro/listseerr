@@ -19,6 +19,7 @@ import { LoggingUseCaseDecorator } from '@/server/infrastructure/services/core/l
 import { ProcessListUseCase } from '@/server/application/use-cases/processing/process-list.usecase';
 import { ProcessBatchUseCase } from '@/server/application/use-cases/processing/process-batch.usecase';
 import { GetExecutionHistoryUseCase } from '@/server/application/use-cases/processing/get-execution-history.usecase';
+import { RetryPartialProcessingUseCase } from '@/server/application/use-cases/processing/retry-partial-processing.usecase';
 
 // Application interfaces
 import type { IUseCase } from '@/server/application/use-cases/use-case.interface';
@@ -26,11 +27,13 @@ import type {
   ProcessListCommand,
   ProcessBatchCommand,
   GetExecutionHistoryCommand,
+  RetryPartialProcessingCommand,
 } from 'shared/application/dtos';
 import type {
   ProcessListResponse,
   ProcessBatchResponse,
   GetExecutionHistoryResponse,
+  RetryPartialProcessingResponse,
 } from 'shared/application/dtos';
 
 // Logger
@@ -61,6 +64,10 @@ export class ProcessingContainer {
   public readonly getExecutionHistoryUseCase: IUseCase<
     GetExecutionHistoryCommand,
     GetExecutionHistoryResponse
+  >;
+  public readonly retryPartialProcessingUseCase: IUseCase<
+    RetryPartialProcessingCommand,
+    RetryPartialProcessingResponse
   >;
 
   constructor(db: BunSQLiteDatabase<typeof schema>) {
@@ -131,6 +138,19 @@ export class ProcessingContainer {
       new GetExecutionHistoryUseCase(this.executionHistoryRepository),
       this.logger,
       'GetExecutionHistoryUseCase'
+    );
+
+    this.retryPartialProcessingUseCase = new LoggingUseCaseDecorator(
+      new RetryPartialProcessingUseCase(
+        this.mediaListRepository,
+        this.seerrConfigRepository,
+        this.executionHistoryRepository,
+        this.mediaFetcherFactory,
+        this.listProcessingService,
+        this.logger
+      ),
+      this.logger,
+      'RetryPartialProcessingUseCase'
     );
   }
 }

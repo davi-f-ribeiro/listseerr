@@ -126,6 +126,7 @@ export const executionHistory = sqliteTable(
       .notNull()
       .default(0),
     errorMessage: text('error_message'),
+    failedItems: text('failed_items'), // JSON array of {item: MediaItemVO, error: string}
   },
   (table) => [
     index('execution_history_list_id_idx').on(table.listId),

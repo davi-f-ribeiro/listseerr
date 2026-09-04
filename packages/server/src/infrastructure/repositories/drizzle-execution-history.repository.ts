@@ -66,7 +66,8 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
           itemsSkippedAvailable: execution.itemsSkippedAvailable,
           itemsSkippedPreviouslyRequested: execution.itemsSkippedPreviouslyRequested,
           errorMessage: execution.errorMessage,
-        })
+          failedItems: execution.failedItems ? JSON.stringify(execution.failedItems) : null,
+          })
         .where(eq(executionHistory.id, execution.id))
         .returning();
 
@@ -84,6 +85,8 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
           startedAt: execution.startedAt,
           status: execution.status.getValue(),
           triggerType: execution.triggerType.getValue(),
+          errorMessage: execution.errorMessage,
+          failedItems: execution.failedItems ? JSON.stringify(execution.failedItems) : null,
         })
         .returning();
 
@@ -127,6 +130,7 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
       itemsSkippedAvailable: row.itemsSkippedAvailable,
       itemsSkippedPreviouslyRequested: row.itemsSkippedPreviouslyRequested,
       errorMessage: row.errorMessage,
+      failedItems: row.failedItems ? (JSON.parse(row.failedItems) as Array<{ item: MediaItemVO; error: string }>) : null,
     });
   }
 }
