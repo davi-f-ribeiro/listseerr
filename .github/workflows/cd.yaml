@@ -69,7 +69,7 @@ jobs:
           tags: |
             type=raw,value=master,enable=${{ github.ref == 'refs/heads/master' }}
             type=raw,value=next,enable=${{ github.ref == 'refs/heads/next' }}
-            type=raw,value=latest,enable=${{ steps.stable.outputs.is_stable == 'true' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
