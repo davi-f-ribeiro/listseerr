@@ -15,11 +15,12 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.5
-      - run: bun install
+      - name: Install and regenerate text lockfile
+        run: bun install --save-text-lockfile
       - name: Commit lockfile
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add bun.lock
-          git commit -m "chore: regenerate lockfile with Bun 1.3.5 and croner ^9.1.0" || echo "No changes"
+          git commit -m "chore: regenerate lockfile with Bun 1.3.5 (text format)" || echo "No changes"
           git push origin HEAD:master
