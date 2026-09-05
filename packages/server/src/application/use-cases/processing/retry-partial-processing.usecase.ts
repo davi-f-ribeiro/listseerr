@@ -55,18 +55,21 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       };
     }
 
-    const isValidFailedItem = (item: unknown): item is FailedItem => {
+    const isValidFailedItem = (item: unknown): item is { item: { tmdbId: number } } => {
       return (
         typeof item === 'object' &&
         item !== null &&
         'item' in item &&
         typeof (item as { item: { tmdbId: number } }).item === 'object' &&
         (item as { item: { tmdbId: number } }).item !== null &&
-        'tmdbId' in (item as { item: { tmdbId: number } }).item
+        'tmdbId' in (item as { item: { tmdbId: number } }).item &&
+        typeof (item as { item: { tmdbId: number } }).item.tmdbId === 'number'
       );
     };
 
-    const validFailedItems = previousExecution.failedItems.filter(isValidFailedItem);
+    const validFailedItems = (previousExecution.failedItems ?? [])
+      .filter(isValidFailedItem)
+      .map((f) => f as { item: { tmdbId: number } });
 
     const list = await this.mediaListRepository.findById(
       previousExecution.listId,
