@@ -15,7 +15,6 @@ import type { ProviderVO } from '@/server/domain/value-objects/provider.vo';
 import { MediaListNotFoundError, ExecutionNotFoundError } from 'shared/domain/errors';
 import { SeerrNotConfiguredError, ProviderNotConfiguredError } from 'shared/domain/errors';
 import type { IMediaFetcher } from '@/server/application/services/media-fetcher.service.interface';
-import type { FailedItem } from 'shared/application/dtos';
 
 export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProcessingCommand, ProcessBatchResponse> {
   constructor(

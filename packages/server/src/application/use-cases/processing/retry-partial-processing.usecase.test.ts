@@ -111,12 +111,12 @@ describe('RetryPartialProcessingUseCase', () => {
     it('should throw ExecutionNotFoundError when execution does not exist', async () => {
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(null);
 
-      expect(async () => {
-        await useCase.execute({
+      await expect(
+        useCase.execute({
           executionId,
           userId,
-        });
-      }).rejects.toThrow(ExecutionNotFoundError);
+        }),
+      ).rejects.toThrow(ExecutionNotFoundError);
     });
 
     it('should return success with no items when execution has no failed items', async () => {
