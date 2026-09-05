@@ -62,12 +62,12 @@ export default [
           patterns: [
             {
               group: ['**/shared/src/**'],
-              message: 'Use \"shared/...\" package imports instead of relative paths.',
+              message: 'Use "shared/..." package imports instead of relative paths.',
             },
             {
               group: ['shared/**/*.*'],
               message:
-                'Import from index files only (e.g., \"shared/domain/types\" not \"shared/domain/types/provider.types\").',
+                'Import from index files only (e.g., "shared/domain/types" not "shared/domain/types/provider.types").',
             },
           ],
         },
@@ -96,7 +96,18 @@ export default [
       'react-hooks/incompatible-library': 'off',
     },
   },
-
+  // Relax rules for tests to allow mocks and unstable types
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 ];
