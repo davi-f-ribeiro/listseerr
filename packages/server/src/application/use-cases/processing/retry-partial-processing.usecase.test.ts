@@ -193,9 +193,7 @@ describe('RetryPartialProcessingUseCase', () => {
     };
 
     it('should throw ExecutionNotFoundError when execution does not exist', async () => {
-      executionHistoryRepo.findById = vi
-        .fn()
-        .mockResolvedValue(null);
+      executionHistoryRepo.findById = vi.fn().mockResolvedValue(null);
 
       await expect(
         useCase.execute({
@@ -212,9 +210,7 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 0, 2, 0, null);
-      executionHistoryRepo.findById = vi
-        .fn()
-        .mockResolvedValue(execution);
+      executionHistoryRepo.findById = vi.fn().mockResolvedValue(execution);
 
       const result = await useCase.execute({
         executionId,
@@ -235,9 +231,7 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
-      executionHistoryRepo.findById = vi
-        .fn()
-        .mockResolvedValue(execution);
+      executionHistoryRepo.findById = vi.fn().mockResolvedValue(execution);
 
       const mediaList = MediaList.create({
         userId,
@@ -249,47 +243,37 @@ describe('RetryPartialProcessingUseCase', () => {
         maxItems: 50,
         seerrUserIdOverride: null,
       });
-      mediaListRepo.findById = vi
-        .fn()
-        .mockResolvedValue(mediaList);
-      seerrConfigRepo.findByUserId = vi
-        .fn()
-        .mockResolvedValue(null);
-      mediaFetcherFactory.createFetcher = vi
-        .fn()
-        .mockResolvedValue({
-          fetchItems: vi.fn().mockResolvedValue([
-            failedItem.item,
-            MediaItemVO.create({
-              title: 'Other Movie',
-              year: 2024,
-              tmdbId: 456,
-              mediaType: MediaTypeVO.movie(),
-            }),
-          ]),
-        });
+      mediaListRepo.findById = vi.fn().mockResolvedValue(mediaList);
+      seerrConfigRepo.findByUserId = vi.fn().mockResolvedValue(null);
+      mediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
+        fetchItems: vi.fn().mockResolvedValue([
+          failedItem.item,
+          MediaItemVO.create({
+            title: 'Other Movie',
+            year: 2024,
+            tmdbId: 456,
+            mediaType: MediaTypeVO.movie(),
+          }),
+        ]),
+      });
 
-      listProcessingService.processItems = vi
-        .fn()
-        .mockResolvedValue({
-          successful: [failedItem.item],
-          failed: [],
-          available: [],
-          previouslyRequested: [],
-        });
+      listProcessingService.processItems = vi.fn().mockResolvedValue({
+        successful: [failedItem.item],
+        failed: [],
+        available: [],
+        previouslyRequested: [],
+      });
 
-      executionHistoryRepo.save = vi
-        .fn()
-        .mockImplementation((exec) => {
-          if ((exec as unknown as { id: number }).id === 0) {
-            Object.defineProperty(exec as unknown as { id: number }, 'id', {
-              value: 200,
-              writable: true,
-              configurable: true,
-            });
-          }
-          return Promise.resolve(exec);
-        });
+      executionHistoryRepo.save = vi.fn().mockImplementation((exec) => {
+        if ((exec as unknown as { id: number }).id === 0) {
+          Object.defineProperty(exec as unknown as { id: number }, 'id', {
+            value: 200,
+            writable: true,
+            configurable: true,
+          });
+        }
+        return Promise.resolve(exec);
+      });
 
       const result = await useCase.execute({
         executionId,
@@ -310,9 +294,7 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
-      executionHistoryRepo.findById = vi
-        .fn()
-        .mockResolvedValue(execution);
+      executionHistoryRepo.findById = vi.fn().mockResolvedValue(execution);
 
       const mediaList = MediaList.create({
         userId,
@@ -325,43 +307,31 @@ describe('RetryPartialProcessingUseCase', () => {
         seerrUserIdOverride: null,
       });
 
-      mediaListRepo.findById = vi
-        .fn()
-        .mockResolvedValue(mediaList);
-      seerrConfigRepo.findByUserId = vi
-        .fn()
-        .mockResolvedValue(null);
-      mediaFetcherFactory.createFetcher = vi
-        .fn()
-        .mockResolvedValue({
-          fetchItems: vi
-            .fn()
-            .mockResolvedValue([failedItem.item]),
-        });
+      mediaListRepo.findById = vi.fn().mockResolvedValue(mediaList);
+      seerrConfigRepo.findByUserId = vi.fn().mockResolvedValue(null);
+      mediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
+        fetchItems: vi.fn().mockResolvedValue([failedItem.item]),
+      });
 
-      listProcessingService.processItems = vi
-        .fn()
-        .mockResolvedValue({
-          successful: [failedItem.item],
-          failed: [],
-          available: [],
-          previouslyRequested: [],
-        });
+      listProcessingService.processItems = vi.fn().mockResolvedValue({
+        successful: [failedItem.item],
+        failed: [],
+        available: [],
+        previouslyRequested: [],
+      });
 
       const savedExecutions: ProcessingExecution[] = [];
-      executionHistoryRepo.save = vi
-        .fn()
-        .mockImplementation((exec) => {
-          if ((exec as unknown as { id: number }).id === 0) {
-            Object.defineProperty(exec as unknown as { id: number }, 'id', {
-              value: 200,
-              writable: true,
-              configurable: true,
-            });
-          }
-          savedExecutions.push(exec);
-          return Promise.resolve(exec);
-        });
+      executionHistoryRepo.save = vi.fn().mockImplementation((exec) => {
+        if ((exec as unknown as { id: number }).id === 0) {
+          Object.defineProperty(exec as unknown as { id: number }, 'id', {
+            value: 200,
+            writable: true,
+            configurable: true,
+          });
+        }
+        savedExecutions.push(exec);
+        return Promise.resolve(exec);
+      });
 
       await useCase.execute({
         executionId,

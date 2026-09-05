@@ -140,7 +140,10 @@ export class ProcessingContainer {
       'GetExecutionHistoryUseCase'
     );
 
-    this.retryPartialProcessingUseCase = new LoggingUseCaseDecorator<RetryPartialProcessingCommand, RetryPartialProcessingResponse>(
+    this.retryPartialProcessingUseCase = new LoggingUseCaseDecorator<
+      RetryPartialProcessingCommand,
+      RetryPartialProcessingResponse
+    >(
       new RetryPartialProcessingUseCase(
         this.mediaListRepository,
         this.seerrConfigRepository,
