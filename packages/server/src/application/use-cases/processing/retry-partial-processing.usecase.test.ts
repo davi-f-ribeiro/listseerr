@@ -356,7 +356,7 @@ describe('RetryPartialProcessingUseCase', () => {
             Object.defineProperty(exec as unknown as { id: number }, 'id', {
               value: 200,
               writable: true,
-              configurable: true},
+              configurable: true,
             });
           }
           savedExecutions.push(exec);

@@ -135,7 +135,7 @@ describe('HttpMediaAvailabilityChecker', () => {
     it('should return empty result for empty input', async () => {
       const config = createConfig();
 
-      const result = await checker.checkAndCategorize([], config);
+      const result = await checker.checkAndCategorize([], the config);
 
       expect(result.available).toHaveLength(0);
       expect(result.previouslyRequested).toHaveLength(0);
@@ -153,7 +153,7 @@ describe('HttpMediaAvailabilityChecker', () => {
           year: 2020,
           tmdbId: 1,
           mediaType: MediaTypeVO.movie(),
-        },
+        }),
         MediaItemVO.create({
           title: 'Movie 2',
           year: 2021,
