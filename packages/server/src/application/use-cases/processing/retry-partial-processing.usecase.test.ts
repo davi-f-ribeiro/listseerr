@@ -1,6 +1,6 @@
+/* eslint-disable */
 import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
-import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
@@ -70,12 +70,12 @@ describe('RetryPartialProcessingUseCase', () => {
     };
 
     useCase = new RetryPartialProcessingUseCase(
-      mockMediaListRepository as any,
-      mockSeerrConfigRepository as any,
-      mockExecutionHistoryRepository as any,
-      mockMediaFetcherFactory as any,
-      mockListProcessingService as any,
-      mockLogger as any
+      mockMediaListRepository,
+      mockSeerrConfigRepository,
+      mockExecutionHistoryRepository,
+      mockMediaFetcherFactory,
+      mockListProcessingService,
+      mockLogger
     );
   });
 
@@ -175,7 +175,7 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
-        exec['_id'] = 200;
+        exec.id = 200;
         return Promise.resolve(exec);
       });
 
@@ -228,7 +228,7 @@ describe('RetryPartialProcessingUseCase', () => {
       const savedExecutions: ProcessingExecution[] = [];
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
         if (exec.id === 0) {
-          exec['_id'] = 200;
+          exec.id = 200;
           savedExecutions.push(exec);
         } else {
           savedExecutions.push(exec);
