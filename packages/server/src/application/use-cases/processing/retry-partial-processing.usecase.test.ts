@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
-import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
@@ -84,7 +83,7 @@ describe('RetryPartialProcessingUseCase', () => {
     const listId = 10;
     const executionId = 100;
 
-    const baseExecution = ProcessingExecution.create({
+    const _baseExecution = ProcessingExecution.create({
       listId,
       batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
       triggerType: TriggerTypeVO.create('manual'),
@@ -145,7 +144,6 @@ describe('RetryPartialProcessingUseCase', () => {
         id: listId,
         provider: { getValue: () => 'stevenlu' } as any,
         url: { getValue: () => 'http://example.com' } as any,
-        maxItems: 50,
         userId,
         enabled: true,
         seerrUserIdOverride: null,
@@ -175,7 +173,7 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
-        exec['_id'] = 200;
+        (exec as any)._id = 200;
         return Promise.resolve(exec);
       });
 
@@ -204,7 +202,6 @@ describe('RetryPartialProcessingUseCase', () => {
         id: listId,
         provider: { getValue: () => 'stevenlu' } as any,
         url: { getValue: () => 'http://example.com' } as any,
-        maxItems: 50,
         userId,
         enabled: true,
         seerrUserIdOverride: null,
@@ -228,7 +225,7 @@ describe('RetryPartialProcessingUseCase', () => {
       const savedExecutions: ProcessingExecution[] = [];
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
         if (exec.id === 0) {
-          exec['_id'] = 200;
+          (exec as any)._id = 200;
           savedExecutions.push(exec);
         } else {
           savedExecutions.push(exec);

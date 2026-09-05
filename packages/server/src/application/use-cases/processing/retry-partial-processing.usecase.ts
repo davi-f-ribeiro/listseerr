@@ -145,7 +145,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<ProcessBatchComma
       result.failed.length,
       result.available.length,
       result.previouslyRequested.length,
-      result.failed.length > 0 ? result.failed : null
+      result.failed.length > 0 ? (result.failed as any) : null
     );
     await this.executionHistoryRepository.save(savedExecution);
 
