@@ -4,7 +4,7 @@ import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
-import type { SeerrConfig } from '../../../../domain/interfaces/repositories/seerr-config.repository.interface';
+import type { SeerrConfig } from '@/server/domain/interfaces/repositories/seerr-config.repository.interface';
 
 // Clear cache before each test
 beforeEach(() => {

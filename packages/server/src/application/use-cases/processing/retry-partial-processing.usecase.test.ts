@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
+import { describe, it, expect, beforeEach, vi } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
@@ -87,7 +87,6 @@ describe('RetryPartialProcessingUseCase', () => {
       item: MediaItemVO.create({
         title: 'Test Movie',
         tmdbId: 123,
-        releaseDate: new Date('2024-01-01'),
       }),
       error: 'Network error',
     };
@@ -153,7 +152,6 @@ describe('RetryPartialProcessingUseCase', () => {
           MediaItemVO.create({
             title: 'Other Movie',
             tmdbId: 456,
-            releaseDate: new Date('2024-01-01'),
           }),
         ]),
       });
