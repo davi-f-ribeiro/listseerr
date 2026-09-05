@@ -13,7 +13,7 @@ import { SeerrUserIdVO } from '@/server/domain/value-objects/seerr-user-id.vo';
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
   let logger: LoggerService;
-  let getMediaAvailabilitySpy: Mock;
+  let getMediaAvailabilitySpy: any;
 
   const createConfig = (
     overrides?: Partial<{

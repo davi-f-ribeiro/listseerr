@@ -12,7 +12,7 @@ import type { IExecutionHistoryRepository } from '@/server/application/repositor
 import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
 import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
-import type { MediaList } from '@/server/domain/entities/media-list.entity';
+import { MediaList } from '@/server/domain/entities/media-list.entity';
 import type { MediaListWithLastProcessed } from '@/server/application/repositories/media-list.repository.interface';
 import type { SeerrConfig } from '@/server/domain/entities/seerr-config.entity';
 import type { ProviderVO } from '@/server/domain/value-objects/provider.vo';
@@ -21,13 +21,13 @@ import type { ListProcessingResult } from '@/server/application/services/list-pr
 
 const createMockMediaListRepository = (): {
   repo: IMediaListRepository;
-  findById: Mock<[number, number], Promise<MediaList | null>>;
-  findAll: Mock<[number], Promise<MediaList[]>>;
-  findAllWithLastProcessed: Mock<[number], Promise<MediaListWithLastProcessed[]>>;
-  save: Mock<[MediaList], Promise<MediaList>>;
-  delete: Mock<[MediaList], Promise<void>>;
-  enableAll: Mock<[number], Promise<void>>;
-  exists: Mock<[number, number], Promise<boolean>>;
+  findById: any;
+  findAll: any;
+  findAllWithLastProcessed: any;
+  save: any;
+  delete: any;
+  enableAll: any;
+  exists: any;
 } => {
   const findById = vi.fn<[number, number], Promise<MediaList | null>>();
   const findAll = vi.fn<[number], Promise<MediaList[]>>();
@@ -59,9 +59,9 @@ const createMockMediaListRepository = (): {
 
 const createMockSeerrConfigRepository = (): {
   repo: ISeerrConfigRepository;
-  findByUserId: Mock<[number], Promise<SeerrConfig | null>>;
-  save: Mock<[SeerrConfig], Promise<SeerrConfig>>;
-  deleteByUserId: Mock<[number], Promise<void>>;
+  findByUserId: any;
+  save: any;
+  deleteByUserId: any;
 } => {
   const findByUserId = vi.fn<[number], Promise<SeerrConfig | null>>();
   const save = vi.fn<[SeerrConfig], Promise<SeerrConfig>>();
@@ -81,10 +81,10 @@ const createMockSeerrConfigRepository = (): {
 
 const createMockExecutionHistoryRepository = (): {
   repo: IExecutionHistoryRepository;
-  findById: Mock<[number], Promise<ProcessingExecution | null>>;
-  save: Mock<[ProcessingExecution], Promise<ProcessingExecution>>;
-  findByListId: Mock<[number, number, number], Promise<ProcessingExecution[]>>;
-  findByBatchId: Mock<[string], Promise<ProcessingExecution[]>>;
+  findById: any;
+  save: any;
+  findByListId: any;
+  findByBatchId: any;
 } => {
   const findById = vi.fn<[number], Promise<ProcessingExecution | null>>();
   const save = vi.fn<[ProcessingExecution], Promise<ProcessingExecution>>();
@@ -107,7 +107,7 @@ const createMockExecutionHistoryRepository = (): {
 
 const createMockMediaFetcherFactory = (): {
   factory: IMediaFetcherFactory;
-  createFetcher: Mock<[ProviderVO, number], Promise<IMediaFetcher | null>>;
+  createFetcher: any;
 } => {
   const createFetcher = vi.fn<[ProviderVO, number], Promise<IMediaFetcher | null>>();
 
@@ -119,7 +119,7 @@ const createMockMediaFetcherFactory = (): {
 
 const createMockListProcessingService = (): {
   service: IListProcessingService;
-  processItems: Mock<[MediaItemVO[], SeerrConfig], Promise<ListProcessingResult>>;
+  processItems: any;
 } => {
   const processItems = vi.fn<[MediaItemVO[], SeerrConfig], Promise<ListProcessingResult>>();
 
@@ -131,10 +131,10 @@ const createMockListProcessingService = (): {
 
 const createMockLogger = (): {
   logger: ILogger;
-  info: Mock<[string | object, string?], void>;
-  error: Mock<[string | object, string?], void>;
-  debug: Mock<[string | object, string?], void>;
-  warn: Mock<[string | object, string?], void>;
+  info: any;
+  error: any;
+  debug: any;
+  warn: any;
 } => {
   const info = vi.fn<[string | object, string?], void>();
   const error = vi.fn<[string | object, string?], void>();
@@ -370,9 +370,9 @@ describe('RetryPartialProcessingUseCase', () => {
 
       expect(savedExecutions.length).toBeGreaterThan(0);
       const newExecution = savedExecutions[savedExecutions.length - 1];
-      expect(newExecution.status.isSuccess()).toBe(true);
-      expect(newExecution.itemsFound).toBe(1);
-      expect(newExecution.itemsRequested).toBe(1);
+      expect(newExecution!.status.isSuccess()).toBe(true);
+      expect(newExecution!.itemsFound).toBe(1);
+      expect(newExecution!.itemsRequested).toBe(1);
     });
   });
 });
