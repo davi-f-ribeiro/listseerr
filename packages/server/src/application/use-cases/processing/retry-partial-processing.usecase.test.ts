@@ -1,67 +1,67 @@
-import { describe, it, expect, beforeEach, vi } from 'bun:test';
+import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
+import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { RetryPartialProcessingUseCase } from '@/server/application/use-cases/processing/retry-partial-processing.usecase';
 import { ExecutionNotFoundError } from 'shared/domain/errors';
 
-// Mock types
 type MockMediaListRepository = {
-  findById: (id: number, userId: number) => Promise<unknown>;
+  findById: Mock;
 };
 
 type MockSeerrConfigRepository = {
-  findByUserId: (userId: number) => Promise<unknown>;
+  findByUserId: Mock;
 };
 
 type MockExecutionHistoryRepository = {
-  findById: (id: number) => Promise<unknown>;
-  save: (exec: ProcessingExecution) => Promise<ProcessingExecution>;
+  findById: Mock;
+  save: Mock;
 };
 
 type MockMediaFetcherFactory = {
-  createFetcher: (provider: unknown, userId: number) => Promise<unknown>;
+  createFetcher: Mock;
 };
 
 type MockListProcessingService = {
-  processItems: (items: MediaItemVO[], config: unknown) => Promise<unknown>;
+  processItems: Mock;
 };
 
 type MockLogger = {
-  info: (data: unknown, message: string) => void;
-  debug: (data: unknown, message: string) => void;
-  error: (data: unknown, message: string) => void;
-  warn: (data: unknown, message: string) => void;
+  info: Mock;
+  debug: Mock;
+  error: Mock;
+  warn: Mock;
 };
 
 describe('RetryPartialProcessingUseCase', () => {
   let useCase: RetryPartialProcessingUseCase;
-  let _mockMediaListRepository: MockMediaListRepository;
-  let _mockSeerrConfigRepository: MockSeerrConfigRepository;
-  let _mockExecutionHistoryRepository: MockExecutionHistoryRepository;
-  let _mockMediaFetcherFactory: MockMediaFetcherFactory;
-  let _mockListProcessingService: MockListProcessingService;
-  let _mockLogger: MockLogger;
+  let mockMediaListRepository: Partial<MockMediaListRepository>;
+  let mockSeerrConfigRepository: Partial<MockSeerrConfigRepository>;
+  let mockExecutionHistoryRepository: Partial<MockExecutionHistoryRepository>;
+  let mockMediaFetcherFactory: Partial<MockMediaFetcherFactory>;
+  let mockListProcessingService: Partial<MockListProcessingService>;
+  let mockLogger: Partial<MockLogger>;
 
   beforeEach(() => {
-    _mockMediaListRepository = {
+    mockMediaListRepository = {
       findById: vi.fn(),
     };
-    _mockSeerrConfigRepository = {
+    mockSeerrConfigRepository = {
       findByUserId: vi.fn(),
     };
-    _mockExecutionHistoryRepository = {
+    mockExecutionHistoryRepository = {
       findById: vi.fn(),
       save: vi.fn(),
     };
-    _mockMediaFetcherFactory = {
+    mockMediaFetcherFactory = {
       createFetcher: vi.fn(),
     };
-    _mockListProcessingService = {
+    mockListProcessingService = {
       processItems: vi.fn(),
     };
-    _mockLogger = {
+    mockLogger = {
       info: vi.fn(),
       debug: vi.fn(),
       error: vi.fn(),
@@ -69,12 +69,12 @@ describe('RetryPartialProcessingUseCase', () => {
     };
 
     useCase = new RetryPartialProcessingUseCase(
-      _mockMediaListRepository,
-      _mockSeerrConfigRepository,
-      _mockExecutionHistoryRepository,
-      _mockMediaFetcherFactory,
-      _mockListProcessingService,
-      _mockLogger
+      mockMediaListRepository as any,
+      mockSeerrConfigRepository as any,
+      mockExecutionHistoryRepository as any,
+      mockMediaFetcherFactory as any,
+      mockListProcessingService as any,
+      mockLogger as any,
     );
   });
 
@@ -83,7 +83,7 @@ describe('RetryPartialProcessingUseCase', () => {
     const listId = 10;
     const executionId = 100;
 
-    const _baseExecution = ProcessingExecution.create({
+    const baseExecution = ProcessingExecution.create({
       listId,
       batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
       triggerType: TriggerTypeVO.create('manual'),
@@ -99,14 +99,14 @@ describe('RetryPartialProcessingUseCase', () => {
       error: 'Network error',
     };
 
-    it('should throw ExecutionNotFoundError when execution does not exist', () => {
-      _mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(null);
+    it('should throw ExecutionNotFoundError when execution does not exist', async () => {
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(null);
 
-      expect(() =>
+      await expect(
         useCase.execute({
           executionId,
           userId,
-        })
+        }),
       ).rejects.toThrow(ExecutionNotFoundError);
     });
 
@@ -117,7 +117,7 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 0, 2, 0, null);
-      _mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
       const result = await useCase.execute({
         executionId,
@@ -138,12 +138,12 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
-      _mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
       const list = {
         id: listId,
-        provider: { getValue: () => 'stevenlu' },
-        url: { getValue: () => 'http://example.com' },
+        provider: { getValue: () => 'stevenlu' } as any,
+        url: { getValue: () => 'http://example.com' } as any,
         maxItems: 50,
         userId,
         enabled: true,
@@ -152,9 +152,9 @@ describe('RetryPartialProcessingUseCase', () => {
         displayUrl: null,
       };
 
-      _mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
-      _mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({});
-      _mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
+      mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
+      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({} as any);
+      mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([
           failedItem.item,
           MediaItemVO.create({
@@ -166,15 +166,15 @@ describe('RetryPartialProcessingUseCase', () => {
         ]),
       });
 
-      _mockListProcessingService.processItems = vi.fn().mockResolvedValue({
+      mockListProcessingService.processItems = vi.fn().mockResolvedValue({
         successful: [failedItem.item],
         failed: [],
         available: [],
         previouslyRequested: [],
       });
 
-      _mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec: ProcessingExecution) => {
-        Object.defineProperty(exec, 'id', { value: 200, writable: true });
+      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
+        exec['_id'] = 200;
         return Promise.resolve(exec);
       });
 
@@ -183,8 +183,8 @@ describe('RetryPartialProcessingUseCase', () => {
         userId,
       });
 
-      expect(_mockMediaFetcherFactory.createFetcher).toHaveBeenCalled();
-      expect(_mockListProcessingService.processItems).toHaveBeenCalled();
+      expect(mockMediaFetcherFactory.createFetcher).toHaveBeenCalled();
+      expect(mockListProcessingService.processItems).toHaveBeenCalled();
       expect(result.success).toBe(true);
       expect(result.processedLists).toBe(1);
       expect(result.itemsRequested).toBe(1);
@@ -197,12 +197,12 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
-      _mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
       const list = {
         id: listId,
-        provider: { getValue: () => 'stevenlu' },
-        url: { getValue: () => 'http://example.com' },
+        provider: { getValue: () => 'stevenlu' } as any,
+        url: { getValue: () => 'http://example.com' } as any,
         maxItems: 50,
         userId,
         enabled: true,
@@ -211,13 +211,13 @@ describe('RetryPartialProcessingUseCase', () => {
         displayUrl: null,
       };
 
-      _mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
-      _mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({});
-      _mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
+      mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
+      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({} as any);
+      mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([failedItem.item]),
       });
 
-      _mockListProcessingService.processItems = vi.fn().mockResolvedValue({
+      mockListProcessingService.processItems = vi.fn().mockResolvedValue({
         successful: [failedItem.item],
         failed: [],
         available: [],
@@ -225,9 +225,9 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       const savedExecutions: ProcessingExecution[] = [];
-      _mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec: ProcessingExecution) => {
-        Object.defineProperty(exec, 'id', { value: 200, writable: true });
+      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
         if (exec.id === 0) {
+          exec['_id'] = 200;
           savedExecutions.push(exec);
         } else {
           savedExecutions.push(exec);

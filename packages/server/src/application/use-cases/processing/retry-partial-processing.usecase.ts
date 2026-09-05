@@ -15,20 +15,8 @@ import type { ProviderVO } from '@/server/domain/value-objects/provider.vo';
 import { MediaListNotFoundError, ExecutionNotFoundError } from 'shared/domain/errors';
 import { SeerrNotConfiguredError, ProviderNotConfiguredError } from 'shared/domain/errors';
 import type { IMediaFetcher } from '@/server/application/services/media-fetcher.service.interface';
+import type { FailedItem } from 'shared/application/dtos';
 
-/**
- * RetryPartialProcessingUseCase
- *
- * Retry only the items that failed in a previous execution.
- * Uses the same processing service and pipeline as ProcessListUseCase.
- *
- * 1. Load the previous execution and validate it exists and has failed items
- * 2. Fetch items again from the provider
- * 3. Filter items to only retry the ones that failed
- * 4. Re-process items using ListProcessingService
- * 5. Create new execution record with retry status
- * 6. Mark execution as success/error
- */
 export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProcessingCommand, ProcessBatchResponse> {
   constructor(
     private readonly mediaListRepository: IMediaListRepository,
@@ -36,16 +24,15 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
     private readonly executionHistoryRepository: IExecutionHistoryRepository,
     private readonly mediaFetcherFactory: IMediaFetcherFactory,
     private readonly listProcessingService: IListProcessingService,
-    private readonly logger: ILogger
+    private readonly logger: ILogger,
   ) {}
 
   async execute(command: RetryPartialProcessingCommand): Promise<ProcessBatchResponse> {
     this.logger.info(
       { executionId: command.executionId },
-      'Starting partial retry of failed items'
+      'Starting partial retry of failed items',
     );
 
-    // 1. Load the previous execution
     const previousExecution = await this.executionHistoryRepository.findById(command.executionId);
     if (!previousExecution) {
       throw new ExecutionNotFoundError(command.executionId);
@@ -54,7 +41,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
     if (!previousExecution.failedItems || previousExecution.failedItems.length === 0) {
       this.logger.info(
         { executionId: command.executionId },
-        'No failed items to retry'
+        'No failed items to retry',
       );
       return {
         success: true,
@@ -68,35 +55,43 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       };
     }
 
-    // Load list to get provider and url
+    const isValidFailedItem = (item: unknown): item is FailedItem => {
+      return (
+        typeof item === 'object' &&
+        item !== null &&
+        'item' in item &&
+        typeof (item as { item: { tmdbId: number } }).item === 'object' &&
+        (item as { item: { tmdbId: number } }).item !== null &&
+        'tmdbId' in (item as { item: { tmdbId: number } }).item
+      );
+    };
+
+    const validFailedItems = previousExecution.failedItems.filter(isValidFailedItem);
+
     const list = await this.mediaListRepository.findById(
       previousExecution.listId,
-      command.userId
+      command.userId,
     );
     if (!list) {
       throw new MediaListNotFoundError(previousExecution.listId);
     }
 
-    // Validate provider is configured
     const fetcher = await this.createFetcherFor(list.provider, command.userId);
 
-    // Load Seerr config
     const seerrConfig = await this.loadSeerrConfig(command.userId);
     if (list.seerrUserIdOverride) {
       seerrConfig.changeSeerrUserId(list.seerrUserIdOverride.getValue());
     }
 
-    // 2. Fetch items again from provider
     this.logger.debug(
       { listId: list.id, provider: list.provider.getValue(), url: list.url.getValue() },
-      'Fetching items from provider for retry'
+      'Fetching items from provider for retry',
     );
     const allItems = await fetcher.fetchItems(list.url.getValue(), list.maxItems);
     this.logger.info({ itemCount: allItems.length }, 'Items fetched from provider for retry');
 
-    // 3. Filter items to only retry the failed ones
     const failedTmdbIds = new Set(
-      previousExecution.failedItems.map((f) => f.item.tmdbId)
+      validFailedItems.map((f) => f.item.tmdbId),
     );
     const itemsToRetry = allItems.filter((item) => failedTmdbIds.has(item.tmdbId));
 
@@ -104,15 +99,18 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       {
         totalItems: allItems.length,
         failedInPrevious: previousExecution.failedItems.length,
+        validFailedItems: validFailedItems.length,
         itemsToRetry: itemsToRetry.length,
       },
-      'Failed items filtered for retry'
+      'Failed items filtered for retry',
     );
 
     if (itemsToRetry.length === 0) {
       this.logger.info(
         { executionId: command.executionId },
-        'No items to retry (all failed items may have been removed from source)'
+        validFailedItems.length === 0
+          ? 'No valid failed items to retry (data corruption detected)'
+          : 'No items to retry (all failed items may have been removed from source)',
       );
       return {
         success: true,
@@ -126,10 +124,8 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       };
     }
 
-    // 4. Process items: check availability and request to Seerr
     const result = await this.listProcessingService.processItems(itemsToRetry, seerrConfig);
 
-    // 5. Create new execution record for this retry
     const triggerType = TriggerTypeVO.create('manual');
     const batchId = BatchIdVO.generate(triggerType);
     const execution = ProcessingExecution.create({
@@ -145,16 +141,15 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       result.failed.length,
       result.available.length,
       result.previouslyRequested.length,
-      result.failed.length > 0 ? result.failed : null
+      result.failed.length > 0 ? result.failed : null,
     );
     await this.executionHistoryRepository.save(savedExecution);
 
     this.logger.info(
       { executionId: savedExecution.id, originalExecutionId: command.executionId },
-      'Partial retry completed'
+      'Partial retry completed',
     );
 
-    // 6. Return response
     return {
       success: true,
       processedLists: 1,
@@ -167,9 +162,6 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
     };
   }
 
-  /**
-   * Load Seerr configuration for user
-   */
   private async loadSeerrConfig(userId: number) {
     const config = await this.seerrConfigRepository.findByUserId(userId);
     if (!config) {
@@ -178,9 +170,6 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
     return config;
   }
 
-  /**
-   * Create media fetcher for provider using factory
-   */
   private async createFetcherFor(provider: ProviderVO, userId: number): Promise<IMediaFetcher> {
     const fetcher = await this.mediaFetcherFactory.createFetcher(provider, userId);
     if (!fetcher) {

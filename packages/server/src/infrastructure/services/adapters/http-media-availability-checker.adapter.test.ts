@@ -5,13 +5,11 @@ import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
 
-// Type for the cache entry
 type CacheEntry = {
   availability: unknown;
   cachedAt: number;
 };
 
-// Mock type for getMediaAvailability spy
 type GetMediaAvailabilityMock = {
   mockResolvedValueOnce: (value: unknown) => GetMediaAvailabilityMock;
   mockRejectedValueOnce: (error: Error) => GetMediaAvailabilityMock;
@@ -27,7 +25,6 @@ describe('HttpMediaAvailabilityChecker', () => {
   beforeEach(() => {
     logger = new LoggerService('test');
     checker = new HttpMediaAvailabilityChecker(logger);
-    // Using spyOn with manual type casting for the mock
     getMediaAvailabilitySpy = spyOn(seerrClient, 'getMediaAvailability') as unknown as GetMediaAvailabilityMock;
   });
 
@@ -39,9 +36,9 @@ describe('HttpMediaAvailabilityChecker', () => {
     it('should make only one request per unique item when called multiple times within TTL', async () => {
       const items = [
         MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }), // Same item
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
         MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }), // Same item again
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
       const config = {
@@ -49,35 +46,32 @@ describe('HttpMediaAvailabilityChecker', () => {
         userId: 1,
         url: 'http://seerr:5055',
         externalUrl: null,
-        apiKey: 'test-key',
+        apiKey: '***',
         userIdSeerr: 1,
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      // Mock responses - only 2 unique items
       getMediaAvailabilitySpy
         .mockResolvedValueOnce({
           id: 1,
           tmdbId: 1,
-          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] }, // AVAILABLE
+          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] },
         })
         .mockResolvedValueOnce({
           id: 2,
           tmdbId: 2,
-          mediaInfo: { id: 2, status: 2, status4k: null, requests: [] }, // PENDING
+          mediaInfo: { id: 2, status: 2, status4k: null, requests: [] },
         });
 
       const result = await checker.checkAndCategorize(items, config);
 
-      // Should still categorize correctly
-      expect(result.available).toHaveLength(2); // 2 instances of movie 1 (AVAILABLE)
-      expect(result.previouslyRequested).toHaveLength(1); // movie 2 (PENDING)
+      expect(result.available).toHaveLength(2);
+      expect(result.previouslyRequested).toHaveLength(1);
       expect(result.toBeRequested).toHaveLength(0);
 
-      // Should only make 2 requests due to caching (not 4)
-      expect(getMediaAvailabilitySpy.mockResolvedValueOnce).toHaveBeenCalledTimes(2);
+      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
 
     it('should make separate requests after TTL expires', async () => {
@@ -90,14 +84,13 @@ describe('HttpMediaAvailabilityChecker', () => {
         userId: 1,
         url: 'http://seerr:5055',
         externalUrl: null,
-        apiKey: 'test-key',
+        apiKey: '***',
         userIdSeerr: 1,
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      // Mock first call
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
@@ -105,23 +98,18 @@ describe('HttpMediaAvailabilityChecker', () => {
       });
 
       await checker.checkAndCategorize(items, config);
-      expect(getMediaAvailabilitySpy.mockResolvedValueOnce).toHaveBeenCalledTimes(1);
+      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
-      // Clear cache manually by accessing the private property
-      const cache = (HttpMediaAvailabilityChecker as unknown as { availabilityCache?: Map<string, CacheEntry> }).availabilityCache;
-      if (cache) {
-        cache.clear();
-      }
+      (HttpMediaAvailabilityChecker as unknown as { availabilityCache?: Map<string, CacheEntry> }).availabilityCache?.clear();
 
-      // Mock second call (different status to verify it's a fresh call)
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
-        mediaInfo: { id: 1, status: 2, status4k: null, requests: [] }, // Now PENDING
+        mediaInfo: { id: 1, status: 2, status4k: null, requests: [] },
       });
 
       await checker.checkAndCategorize(items, config);
-      expect(getMediaAvailabilitySpy.mockResolvedValueOnce).toHaveBeenCalledTimes(2);
+      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -132,7 +120,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         userId: 1,
         url: 'http://seerr:5055',
         externalUrl: null,
-        apiKey: 'test-key',
+        apiKey: '***',
         userIdSeerr: 1,
         tvSeasons: 'first' as const,
         createdAt: new Date(),
@@ -145,7 +133,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.previouslyRequested).toHaveLength(0);
       expect(result.toBeRequested).toHaveLength(0);
       expect(result.errored).toHaveLength(0);
-      expect(getMediaAvailabilitySpy.mockRestore).not.toHaveBeenCalled();
+      expect(getMediaAvailabilitySpy).not.toHaveBeenCalled();
     });
   });
 
@@ -161,19 +149,18 @@ describe('HttpMediaAvailabilityChecker', () => {
         userId: 1,
         url: 'http://seerr:5055',
         externalUrl: null,
-        apiKey: 'test-key',
+        apiKey: '***',
         userIdSeerr: 1,
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      // Mock one success and one error
       getMediaAvailabilitySpy
         .mockResolvedValueOnce({
           id: 1,
           tmdbId: 1,
-          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] }, // AVAILABLE
+          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] },
         })
         .mockRejectedValueOnce(new Error('Network error'));
 
@@ -182,7 +169,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.available).toHaveLength(1);
       expect(result.errored).toHaveLength(1);
       expect(result.errored[0].error).toBe('Network error');
-      expect(getMediaAvailabilitySpy.mockRestore).toHaveBeenCalledTimes(1);
+      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
   });
 });
