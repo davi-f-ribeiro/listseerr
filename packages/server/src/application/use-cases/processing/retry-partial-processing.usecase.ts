@@ -16,6 +16,7 @@ import { MediaListNotFoundError, ExecutionNotFoundError } from 'shared/domain/er
 import { SeerrNotConfiguredError, ProviderNotConfiguredError } from 'shared/domain/errors';
 import type { IMediaFetcher } from '@/server/application/services/media-fetcher.service.interface';
 
+
 export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProcessingCommand, ProcessBatchResponse> {
   constructor(
     private readonly mediaListRepository: IMediaListRepository,
