@@ -21,12 +21,6 @@ export interface ProcessingRouterDeps {
   retryPartialProcessingUseCase: IUseCase<RetryPartialProcessingCommand, RetryPartialProcessingResponse>;
 }
 
-/**
- * Processing Router (tRPC)
- *
- * Exposes processing operations via tRPC procedures.
- * Delegates to use cases through injected dependencies.
- */
 export function createProcessingRouter(deps: ProcessingRouterDeps) {
   return router({
     processList: publicProcedure
@@ -34,7 +28,7 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
         z.object({
           listId: z.number(),
           triggerType: z.enum(['manual', 'scheduled']).default('manual'),
-        })
+        }),
       )
       .mutation(async ({ input, ctx }) => {
         return await deps.processListUseCase.execute({
@@ -56,7 +50,7 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
         z.object({
           listId: z.number(),
           limit: z.number().positive().default(10),
-        })
+        }),
       )
       .query(async ({ input, ctx }) => {
         return await deps.getExecutionHistoryUseCase.execute({
@@ -70,7 +64,7 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
       .input(
         z.object({
           executionId: z.number(),
-        })
+        }),
       )
       .mutation(async ({ input, ctx }) => {
         return await deps.retryPartialProcessingUseCase.execute({

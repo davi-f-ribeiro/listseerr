@@ -24,9 +24,8 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
   async findByListId(
     listId: number,
     userId: number,
-    limit: number
+    limit: number,
   ): Promise<ProcessingExecution[]> {
-    // Defense-in-depth: JOIN with mediaLists to ensure the list belongs to the user
     const rows = await this.db
       .select({
         eh: executionHistory,
@@ -54,7 +53,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     const entityExists = await this.exists(execution.id);
 
     if (entityExists) {
-      // Update existing execution
       const [row] = await this.db
         .update(executionHistory)
         .set({
@@ -67,7 +65,7 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
           itemsSkippedPreviouslyRequested: execution.itemsSkippedPreviouslyRequested,
           errorMessage: execution.errorMessage,
           failedItems: execution.failedItems ? JSON.stringify(execution.failedItems) : null,
-          })
+        })
         .where(eq(executionHistory.id, execution.id))
         .returning();
 
@@ -76,7 +74,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
       }
       return this.toDomain(row);
     } else {
-      // Insert new execution
       const [row] = await this.db
         .insert(executionHistory)
         .values({
@@ -97,11 +94,8 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     }
   }
 
-  /**
-   * Check if execution exists in database
-   */
   private async exists(id: number): Promise<boolean> {
-    if (id === 0) return false; // New entities have ID 0
+    if (id === 0) return false;
 
     const [row] = await this.db
       .select({ id: executionHistory.id })
@@ -112,9 +106,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     return !!row;
   }
 
-  /**
-   * Convert Drizzle row to ProcessingExecution domain entity
-   */
   private toDomain(row: typeof executionHistory.$inferSelect): ProcessingExecution {
     return new ProcessingExecution({
       id: row.id,
