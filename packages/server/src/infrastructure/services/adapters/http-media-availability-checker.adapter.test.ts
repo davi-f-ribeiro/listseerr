@@ -1,31 +1,42 @@
-import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'bun:test';
+import type { Mock } from 'bun:test';
 import { HttpMediaAvailabilityChecker } from './http-media-availability-checker.adapter';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
-
-type CacheEntry = {
-  availability: unknown;
-  cachedAt: number;
-};
-
-type GetMediaAvailabilityMock = {
-  mockResolvedValueOnce: (value: unknown) => GetMediaAvailabilityMock;
-  mockRejectedValueOnce: (error: Error) => GetMediaAvailabilityMock;
-  mockRestore: () => void;
-  mockClear?: () => void;
-};
+import { SeerrConfig } from '@/server/domain/entities/seerr-config.entity';
+import { SeerrUrlVO } from '@/server/domain/value-objects/seerr-url.vo';
+import { SeerrApiKeyVO } from '@/server/domain/value-objects/seerr-api-key.vo';
+import { SeerrUserIdVO } from '@/server/domain/value-objects/seerr-user-id.vo';
 
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
   let logger: LoggerService;
-  let getMediaAvailabilitySpy: GetMediaAvailabilityMock;
+  let getMediaAvailabilitySpy: Mock;
+
+  const createConfig = (overrides?: Partial<{
+    url: string;
+    apiKey: string;
+    userIdSeerr: number;
+  }>): SeerrConfig => {
+    return new SeerrConfig({
+      id: 1,
+      userId: 1,
+      url: SeerrUrlVO.create(overrides?.url ?? 'http://seerr:5055'),
+      externalUrl: null,
+      apiKey: SeerrApiKeyVO.create(overrides?.apiKey ?? 'test-api-key'),
+      userIdSeerr: SeerrUserIdVO.create(overrides?.userIdSeerr ?? 1),
+      tvSeasons: 'first' as const,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  };
 
   beforeEach(() => {
     logger = new LoggerService('test');
     checker = new HttpMediaAvailabilityChecker(logger);
-    getMediaAvailabilitySpy = spyOn(seerrClient, 'getMediaAvailability') as unknown as GetMediaAvailabilityMock;
+    getMediaAvailabilitySpy = vi.spyOn(seerrClient, 'getMediaAvailability');
   });
 
   afterEach(() => {
@@ -41,17 +52,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: '***',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       getMediaAvailabilitySpy
         .mockResolvedValueOnce({
@@ -79,17 +80,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: '***',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
@@ -100,7 +91,8 @@ describe('HttpMediaAvailabilityChecker', () => {
       await checker.checkAndCategorize(items, config);
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
-      (HttpMediaAvailabilityChecker as unknown as { availabilityCache?: Map<string, CacheEntry> }).availabilityCache?.clear();
+      // @ts-expect-error — access to private static cache for test isolation
+      HttpMediaAvailabilityChecker.availabilityCache?.clear();
 
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
@@ -115,17 +107,7 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   describe('empty items', () => {
     it('should return empty result for empty input', async () => {
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: '***',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       const result = await checker.checkAndCategorize([], config);
 
@@ -144,17 +126,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: '***',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       getMediaAvailabilitySpy
         .mockResolvedValueOnce({
