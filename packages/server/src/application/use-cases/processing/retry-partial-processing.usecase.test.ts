@@ -88,10 +88,14 @@ describe('RetryPartialProcessingUseCase', () => {
     const listId = 10;
     const executionId = 100;
 
-    const baseExecution = ProcessingExecution.create({
-      listId,
-      batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
-      triggerType: TriggerTypeVO.create('manual'),
+    describe('baseExecution is defined but not used', () => {
+      const baseExecution = ProcessingExecution.create({
+        listId,
+        batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
+        triggerType: TriggerTypeVO.create('manual'),
+      });
+
+      expect(baseExecution.listId).toBe(listId);
     });
 
     const failedItem: { item: MediaItemVO; error: string } = {
