@@ -4,6 +4,7 @@ import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
+import type { SeerrConfig } from '@/server/domain/interfaces/repositories/seerr-config.repository.interface';
 
 // Clear cache before each test
 beforeEach(() => {
@@ -13,6 +14,20 @@ beforeEach(() => {
     availabilityCache.clear();
   }
 });
+
+const createConfig = (): SeerrConfig => {
+  return {
+    id: 1,
+    userId: 1,
+    url: 'http://seerr:5055',
+    externalUrl: null,
+    apiKey: 'test-key',
+    userIdSeerr: 1,
+    tvSeasons: 'first' as const,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as unknown as SeerrConfig;
+};
 
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
@@ -37,43 +52,13 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('N+1 requests problem - cache should reduce calls', () => {
     it('should make only one request per unique item when called multiple times within TTL', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }), // Same item
-        MediaItemVO.create({
-          title: 'Movie 2',
-          year: 2021,
-          tmdbId: 2,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }), // Same item again
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }), // Same item
+        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }), // Same item again
       ];
 
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: 'test-key',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       // Mock responses - only 2 unique items
       getMediaAvailabilitySpy
@@ -94,32 +79,17 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.available).toHaveLength(2); // 2 instances of movie 1 (AVAILABLE)
       expect(result.previouslyRequested).toHaveLength(1); // movie 2 (PENDING)
       expect(result.toBeRequested).toHaveLength(0);
-
+      
       // Should only make 2 requests due to caching (not 4)
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
 
     it('should make separate requests after TTL expires', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: 'test-key',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       // Mock first call
       getMediaAvailabilitySpy.mockResolvedValueOnce({
@@ -149,17 +119,7 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   describe('empty items', () => {
     it('should return empty result for empty input', async () => {
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: 'test-key',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       const result = await checker.checkAndCategorize([], config);
 
@@ -174,31 +134,11 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('error handling', () => {
     it('should handle errors gracefully', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 2',
-          year: 2021,
-          tmdbId: 2,
-          mediaType: MediaTypeVO.movie(),
-        }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = {
-        id: 1,
-        userId: 1,
-        url: 'http://seerr:5055',
-        externalUrl: null,
-        apiKey: 'test-key',
-        userIdSeerr: 1,
-        tvSeasons: 'first' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const config = createConfig();
 
       // Mock one success and one error
       getMediaAvailabilitySpy

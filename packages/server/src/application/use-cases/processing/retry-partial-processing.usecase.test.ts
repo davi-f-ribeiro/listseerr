@@ -1,179 +1,81 @@
-import { describe, it, expect, beforeEach, vi } from 'bun:test';
+import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
+import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
-import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { RetryPartialProcessingUseCase } from '@/server/application/use-cases/processing/retry-partial-processing.usecase';
 import { ExecutionNotFoundError } from 'shared/domain/errors';
-import type { IMediaListRepository } from '@/server/application/repositories/media-list.repository.interface';
-import type { ISeerrConfigRepository } from '@/server/application/repositories/seerr-config.repository.interface';
-import type { IExecutionHistoryRepository } from '@/server/application/repositories/execution-history.repository.interface';
-import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
-import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
-import type { ILogger } from '@/server/application/services/core/logger.interface';
-import { MediaList } from '@/server/domain/entities/media-list.entity';
-import type { MediaListWithLastProcessed } from '@/server/application/repositories/media-list.repository.interface';
-import type { SeerrConfig } from '@/server/domain/entities/seerr-config.entity';
-import type { ProviderVO } from '@/server/domain/value-objects/provider.vo';
-import type { IMediaFetcher } from '@/server/application/services/media-fetcher.service.interface';
-import type { ListProcessingResult } from '@/server/application/services/list-processing.service.interface';
 
-const createMockMediaListRepository = (): {
-  repo: IMediaListRepository;
-  findById: any;
-  findAll: any;
-  findAllWithLastProcessed: any;
-  save: any;
-  delete: any;
-  enableAll: any;
-  exists: any;
-} => {
-  const findById = vi.fn();
-  const findAll = vi.fn();
-  const findAllWithLastProcessed = vi.fn();
-  const save = vi.fn();
-  const delete_ = vi.fn();
-  const enableAll = vi.fn();
-  const exists = vi.fn();
-
-  return {
-    repo: {
-      findById,
-      findAll,
-      findAllWithLastProcessed,
-      save,
-      delete: delete_,
-      enableAll,
-      exists,
-    },
-    findById,
-    findAll,
-    findAllWithLastProcessed,
-    save,
-    delete: delete_,
-    enableAll,
-    exists,
-  };
+// Mock types
+type MockMediaListRepository = {
+  findById: Mock;
 };
 
-const createMockSeerrConfigRepository = (): {
-  repo: ISeerrConfigRepository;
-  findByUserId: any;
-  save: any;
-  deleteByUserId: any;
-} => {
-  const findByUserId = vi.fn();
-  const save = vi.fn();
-  const deleteByUserId = vi.fn();
-
-  return {
-    repo: {
-      findByUserId,
-      save,
-      deleteByUserId,
-    },
-    findByUserId,
-    save,
-    deleteByUserId,
-  };
+type MockSeerrConfigRepository = {
+  findByUserId: Mock;
 };
 
-const createMockExecutionHistoryRepository = (): {
-  repo: IExecutionHistoryRepository;
-  findById: any;
-  save: any;
-  findByListId: any;
-  findByBatchId: any;
-} => {
-  const findById = vi.fn();
-  const save = vi.fn();
-  const findByListId = vi.fn();
-  const findByBatchId = vi.fn();
-
-  return {
-    repo: {
-      findById,
-      save,
-      findByListId,
-      findByBatchId,
-    },
-    findById,
-    save,
-    findByListId,
-    findByBatchId,
-  };
+type MockExecutionHistoryRepository = {
+  findById: Mock;
+  save: Mock;
 };
 
-const createMockMediaFetcherFactory = (): {
-  factory: IMediaFetcherFactory;
-  createFetcher: any;
-} => {
-  const createFetcher = vi.fn();
-
-  return {
-    factory: { createFetcher },
-    createFetcher,
-  };
+type MockMediaFetcherFactory = {
+  createFetcher: Mock;
 };
 
-const createMockListProcessingService = (): {
-  service: IListProcessingService;
-  processItems: any;
-} => {
-  const processItems = vi.fn();
-
-  return {
-    service: { processItems },
-    processItems,
-  };
+type MockListProcessingService = {
+  processItems: Mock;
 };
 
-const createMockLogger = (): {
-  logger: ILogger;
-  info: any;
-  error: any;
-  debug: any;
-  warn: any;
-} => {
-  const info = vi.fn();
-  const error = vi.fn();
-  const debug = vi.fn();
-  const warn = vi.fn();
-
-  return {
-    logger: { info, error, debug, warn },
-    info,
-    error,
-    debug,
-    warn,
-  };
+type MockLogger = {
+  info: Mock;
+  debug: Mock;
+  error: Mock;
+  warn: Mock;
 };
 
 describe('RetryPartialProcessingUseCase', () => {
   let useCase: RetryPartialProcessingUseCase;
-  let mediaListRepo: ReturnType<typeof createMockMediaListRepository>;
-  let seerrConfigRepo: ReturnType<typeof createMockSeerrConfigRepository>;
-  let executionHistoryRepo: ReturnType<typeof createMockExecutionHistoryRepository>;
-  let mediaFetcherFactory: ReturnType<typeof createMockMediaFetcherFactory>;
-  let listProcessingService: ReturnType<typeof createMockListProcessingService>;
-  let logger: ReturnType<typeof createMockLogger>;
+  let mockMediaListRepository: Partial<MockMediaListRepository>;
+  let mockSeerrConfigRepository: Partial<MockSeerrConfigRepository>;
+  let mockExecutionHistoryRepository: Partial<MockExecutionHistoryRepository>;
+  let mockMediaFetcherFactory: Partial<MockMediaFetcherFactory>;
+  let mockListProcessingService: Partial<MockListProcessingService>;
+  let mockLogger: Partial<MockLogger>;
 
   beforeEach(() => {
-    mediaListRepo = createMockMediaListRepository();
-    seerrConfigRepo = createMockSeerrConfigRepository();
-    executionHistoryRepo = createMockExecutionHistoryRepository();
-    mediaFetcherFactory = createMockMediaFetcherFactory();
-    listProcessingService = createMockListProcessingService();
-    logger = createMockLogger();
+    mockMediaListRepository = {
+      findById: vi.fn(),
+    };
+    mockSeerrConfigRepository = {
+      findByUserId: vi.fn(),
+    };
+    mockExecutionHistoryRepository = {
+      findById: vi.fn(),
+      save: vi.fn(),
+    };
+    mockMediaFetcherFactory = {
+      createFetcher: vi.fn(),
+    };
+    mockListProcessingService = {
+      processItems: vi.fn(),
+    };
+    mockLogger = {
+      info: vi.fn(),
+      debug: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+    };
 
     useCase = new RetryPartialProcessingUseCase(
-      mediaListRepo.repo,
-      seerrConfigRepo.repo,
-      executionHistoryRepo.repo,
-      mediaFetcherFactory.factory,
-      listProcessingService.service,
-      logger.logger
+      mockMediaListRepository as any,
+      mockSeerrConfigRepository as any,
+      mockExecutionHistoryRepository as any,
+      mockMediaFetcherFactory as any,
+      mockListProcessingService as any,
+      mockLogger as any
     );
   });
 
@@ -182,18 +84,24 @@ describe('RetryPartialProcessingUseCase', () => {
     const listId = 10;
     const executionId = 100;
 
-    const failedItem = {
+    const baseExecution = ProcessingExecution.create({
+      listId,
+      batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
+      triggerType: TriggerTypeVO.create('manual'),
+    });
+
+    const failedItem: { item: MediaItemVO; error: string } = {
       item: MediaItemVO.create({
         title: 'Test Movie',
-        year: 2020,
         tmdbId: 123,
-        mediaType: MediaTypeVO.movie(),
+        type: 'movie',
+        releaseDate: new Date('2024-01-01'),
       }),
       error: 'Network error',
     };
 
     it('should throw ExecutionNotFoundError when execution does not exist', async () => {
-      executionHistoryRepo.findById = vi.fn().mockResolvedValue(null);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(null);
 
       await expect(
         useCase.execute({
@@ -210,7 +118,7 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 0, 2, 0, null);
-      executionHistoryRepo.findById = vi.fn().mockResolvedValue(execution);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
       const result = await useCase.execute({
         executionId,
@@ -231,47 +139,43 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
-      executionHistoryRepo.findById = vi.fn().mockResolvedValue(execution);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
-      const mediaList = MediaList.create({
-        userId,
-        name: 'Test List',
-        url: 'http://example.com',
-        displayUrl: '',
-        provider: 'stevenlu',
-        enabled: true,
+      const list = {
+        id: listId,
+        provider: { getValue: () => 'stevenlu' } as any,
+        url: { getValue: () => 'http://example.com' } as any,
         maxItems: 50,
+        userId,
+        enabled: true,
         seerrUserIdOverride: null,
-      });
-      mediaListRepo.findById = vi.fn().mockResolvedValue(mediaList);
-      seerrConfigRepo.findByUserId = vi.fn().mockResolvedValue(null);
-      mediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
+        name: 'Test List',
+        displayUrl: null,
+      };
+
+      mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
+      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({} as any);
+      mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([
           failedItem.item,
           MediaItemVO.create({
             title: 'Other Movie',
-            year: 2024,
             tmdbId: 456,
-            mediaType: MediaTypeVO.movie(),
+            type: 'movie',
+            releaseDate: new Date('2024-01-01'),
           }),
         ]),
       });
 
-      listProcessingService.processItems = vi.fn().mockResolvedValue({
+      mockListProcessingService.processItems = vi.fn().mockResolvedValue({
         successful: [failedItem.item],
         failed: [],
         available: [],
         previouslyRequested: [],
       });
 
-      executionHistoryRepo.save = vi.fn().mockImplementation((exec) => {
-        if ((exec as unknown as { id: number }).id === 0) {
-          Object.defineProperty(exec as unknown as { id: number }, 'id', {
-            value: 200,
-            writable: true,
-            configurable: true,
-          });
-        }
+      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
+        exec['_id'] = 200;
         return Promise.resolve(exec);
       });
 
@@ -280,8 +184,8 @@ describe('RetryPartialProcessingUseCase', () => {
         userId,
       });
 
-      expect(mediaFetcherFactory.createFetcher).toHaveBeenCalled();
-      expect(listProcessingService.processItems).toHaveBeenCalled();
+      expect(mockMediaFetcherFactory.createFetcher).toHaveBeenCalled();
+      expect(mockListProcessingService.processItems).toHaveBeenCalled();
       expect(result.success).toBe(true);
       expect(result.processedLists).toBe(1);
       expect(result.itemsRequested).toBe(1);
@@ -294,26 +198,27 @@ describe('RetryPartialProcessingUseCase', () => {
         triggerType: TriggerTypeVO.create('manual'),
       });
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
-      executionHistoryRepo.findById = vi.fn().mockResolvedValue(execution);
+      mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
-      const mediaList = MediaList.create({
-        userId,
-        name: 'Test List',
-        url: 'http://example.com',
-        displayUrl: '',
-        provider: 'stevenlu',
-        enabled: true,
+      const list = {
+        id: listId,
+        provider: { getValue: () => 'stevenlu' } as any,
+        url: { getValue: () => 'http://example.com' } as any,
         maxItems: 50,
+        userId,
+        enabled: true,
         seerrUserIdOverride: null,
-      });
+        name: 'Test List',
+        displayUrl: null,
+      };
 
-      mediaListRepo.findById = vi.fn().mockResolvedValue(mediaList);
-      seerrConfigRepo.findByUserId = vi.fn().mockResolvedValue(null);
-      mediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
+      mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
+      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({} as any);
+      mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([failedItem.item]),
       });
 
-      listProcessingService.processItems = vi.fn().mockResolvedValue({
+      mockListProcessingService.processItems = vi.fn().mockResolvedValue({
         successful: [failedItem.item],
         failed: [],
         available: [],
@@ -321,15 +226,13 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       const savedExecutions: ProcessingExecution[] = [];
-      executionHistoryRepo.save = vi.fn().mockImplementation((exec) => {
-        if ((exec as unknown as { id: number }).id === 0) {
-          Object.defineProperty(exec as unknown as { id: number }, 'id', {
-            value: 200,
-            writable: true,
-            configurable: true,
-          });
+      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
+        if (exec.id === 0) {
+          exec['_id'] = 200;
+          savedExecutions.push(exec);
+        } else {
+          savedExecutions.push(exec);
         }
-        savedExecutions.push(exec);
         return Promise.resolve(exec);
       });
 
@@ -340,9 +243,9 @@ describe('RetryPartialProcessingUseCase', () => {
 
       expect(savedExecutions.length).toBeGreaterThan(0);
       const newExecution = savedExecutions[savedExecutions.length - 1];
-      expect(newExecution!.status.isSuccess()).toBe(true);
-      expect(newExecution!.itemsFound).toBe(1);
-      expect(newExecution!.itemsRequested).toBe(1);
+      expect(newExecution.status.isSuccess()).toBe(true);
+      expect(newExecution.itemsFound).toBe(1);
+      expect(newExecution.itemsRequested).toBe(1);
     });
   });
 });
