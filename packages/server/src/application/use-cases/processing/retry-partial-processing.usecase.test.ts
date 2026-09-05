@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'bun:test';
+import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
 import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
@@ -8,15 +8,26 @@ import { RetryPartialProcessingUseCase } from '@/server/application/use-cases/pr
 import { ExecutionNotFoundError } from 'shared/domain/errors';
 
 // Mock types
-type MockMediaListRepository = {\n  findById: any;\n};
+type MockMediaListRepository = {
+  findById: any;
+};
 
-type MockSeerrConfigRepository = {\n  findByUserId: any;\n};
+type MockSeerrConfigRepository = {
+  findByUserId: any;
+};
 
-type MockExecutionHistoryRepository = {\n  findById: any;\n  save: any;\n};
+type MockExecutionHistoryRepository = {
+  findById: any;
+  save: any;
+};
 
-type MockMediaFetcherFactory = {\n  createFetcher: any;\n};
+type MockMediaFetcherFactory = {
+  createFetcher: any;
+};
 
-type MockListProcessingService = {\n  processItems: any;\n};
+type MockListProcessingService = {
+  processItems: any;
+};
 
 type MockLogger = {
   info: Mock;

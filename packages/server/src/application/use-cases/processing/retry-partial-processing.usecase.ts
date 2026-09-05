@@ -39,7 +39,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
     private readonly logger: ILogger
   ) {}
 
-  async execute(command: ProcessBatchCommand): Promise<ProcessBatchResponse> {
+  async execute(command: RetryPartialProcessingCommand): Promise<ProcessBatchResponse> {
     this.logger.info(
       { executionId: command.executionId },
       'Starting partial retry of failed items'
