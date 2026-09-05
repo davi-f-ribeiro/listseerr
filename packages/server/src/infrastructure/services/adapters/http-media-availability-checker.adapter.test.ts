@@ -11,20 +11,24 @@ type CacheEntry = {
   cachedAt: number;
 };
 
-// Type for the mock
-type MockGetMediaAvailability = jest.MockedFunction<
-  typeof seerrClient.getMediaAvailability
->;
+// Mock type for getMediaAvailability spy
+type GetMediaAvailabilityMock = {
+  mockResolvedValueOnce: (value: unknown) => GetMediaAvailabilityMock;
+  mockRejectedValueOnce: (error: Error) => GetMediaAvailabilityMock;
+  mockRestore: () => void;
+  mockClear?: () => void;
+};
 
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
   let logger: LoggerService;
-  let getMediaAvailabilitySpy: MockGetMediaAvailability;
+  let getMediaAvailabilitySpy: GetMediaAvailabilityMock;
 
   beforeEach(() => {
     logger = new LoggerService('test');
     checker = new HttpMediaAvailabilityChecker(logger);
-    getMediaAvailabilitySpy = spyOn(seerrClient, 'getMediaAvailability');
+    // Using spyOn with manual type casting for the mock
+    getMediaAvailabilitySpy = spyOn(seerrClient, 'getMediaAvailability') as unknown as GetMediaAvailabilityMock;
   });
 
   afterEach(() => {
@@ -73,7 +77,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.toBeRequested).toHaveLength(0);
 
       // Should only make 2 requests due to caching (not 4)
-      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
+      expect(getMediaAvailabilitySpy.mockResolvedValueOnce).toHaveBeenCalledTimes(2);
     });
 
     it('should make separate requests after TTL expires', async () => {
@@ -101,7 +105,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       });
 
       await checker.checkAndCategorize(items, config);
-      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
+      expect(getMediaAvailabilitySpy.mockResolvedValueOnce).toHaveBeenCalledTimes(1);
 
       // Clear cache manually by accessing the private property
       const cache = (HttpMediaAvailabilityChecker as unknown as { availabilityCache?: Map<string, CacheEntry> }).availabilityCache;
@@ -117,7 +121,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       });
 
       await checker.checkAndCategorize(items, config);
-      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
+      expect(getMediaAvailabilitySpy.mockResolvedValueOnce).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -141,7 +145,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.previouslyRequested).toHaveLength(0);
       expect(result.toBeRequested).toHaveLength(0);
       expect(result.errored).toHaveLength(0);
-      expect(getMediaAvailabilitySpy).not.toHaveBeenCalled();
+      expect(getMediaAvailabilitySpy.mockRestore).not.toHaveBeenCalled();
     });
   });
 
@@ -178,7 +182,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.available).toHaveLength(1);
       expect(result.errored).toHaveLength(1);
       expect(result.errored[0].error).toBe('Network error');
-      expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
+      expect(getMediaAvailabilitySpy.mockRestore).toHaveBeenCalledTimes(1);
     });
   });
 });
