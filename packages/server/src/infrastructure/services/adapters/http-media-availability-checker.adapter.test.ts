@@ -18,7 +18,7 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   const createConfig = (overrides?: Partial<{
     url: string;
-    apiKey: ***
+    apiKey: string;
     userIdSeerr: number;
   }>): SeerrConfig => {
     return new SeerrConfig({
@@ -26,7 +26,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       userId: 1,
       url: SeerrUrlVO.create(overrides?.url ?? 'http://seerr:5055'),
       externalUrl: null,
-      apiKey: SeerrA...iKey ?? 'test-api-key'),
+      apiKey: SeerrApiKeyVO.create(overrides?.apiKey ?? 'test-api-key'),
       userIdSeerr: SeerrUserIdVO.create(overrides?.userIdSeerr ?? 1),
       tvSeasons: 'first' as const,
       createdAt: new Date(),
