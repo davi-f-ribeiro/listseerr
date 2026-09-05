@@ -7,7 +7,7 @@ import * as seerrClient from '@/server/infrastructure/services/external/seerr/cl
 
 // Clear cache before each test
 beforeEach(() => {
-  // @ts-expect-error - accessing private cache for testing
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   if (typeof availabilityCache !== 'undefined') {
     // @ts-expect-error - accessing private cache
     availabilityCache.clear();
@@ -17,6 +17,7 @@ beforeEach(() => {
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
   let logger: LoggerService;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let getMediaAvailabilitySpy: any;
 
   beforeEach(() => {
@@ -26,6 +27,7 @@ describe('HttpMediaAvailabilityChecker', () => {
   });
 
   afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     getMediaAvailabilitySpy.mockRestore();
     // @ts-expect-error - accessing private cache
     if (typeof availabilityCache !== 'undefined') {
@@ -97,6 +99,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       };
 
       // Mock first call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
@@ -111,6 +114,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       availabilityCache.clear();
 
       // Mock second call (different status to verify it's a fresh call)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,

@@ -41,6 +41,7 @@ type MockLogger = {
   warn: Mock;
 };
 
+// eslint-disable-next-line @typescript-eslint/await-thenable
 describe('RetryPartialProcessingUseCase', () => {
   let useCase: RetryPartialProcessingUseCase;
   let mockMediaListRepository: Partial<MockMediaListRepository>;
@@ -140,6 +141,7 @@ describe('RetryPartialProcessingUseCase', () => {
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const list = {
         id: listId,
         provider: { getValue: () => 'stevenlu' } as any,
@@ -153,7 +155,6 @@ describe('RetryPartialProcessingUseCase', () => {
       };
 
       mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
-      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({} as unknown);
       mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([
           failedItem.item,
@@ -174,6 +175,7 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         exec['_id'] = 200;
         return Promise.resolve(exec);
       });
@@ -199,6 +201,7 @@ describe('RetryPartialProcessingUseCase', () => {
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const list = {
         id: listId,
         provider: { getValue: () => 'stevenlu' } as any,
@@ -226,8 +229,10 @@ describe('RetryPartialProcessingUseCase', () => {
 
       const savedExecutions: ProcessingExecution[] = [];
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (exec.id === 0) {
-          exec['_id'] = 200;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        exec['_id'] = 200;
           savedExecutions.push(exec);
         } else {
           savedExecutions.push(exec);
