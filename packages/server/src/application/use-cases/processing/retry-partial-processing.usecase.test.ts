@@ -5,14 +5,8 @@ import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { RetryPartialProcessingUseCase } from '@/server/application/use-cases/processing/retry-partial-processing.usecase';
 import { ExecutionNotFoundError } from 'shared/domain/errors';
-import type { IMediaListRepository } from '@/server/application/repositories/media-list.repository.interface';
-import type { ISeerrConfigRepository } from '@/server/application/repositories/seerr-config.repository.interface';
-import type { IExecutionHistoryRepository } from '@/server/application/repositories/execution-history.repository.interface';
-import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
-import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
-import type { ILogger } from '@/server/application/services/core/logger.interface';
 
-// Mock types - using actual interfaces from the project
+// Mock types
 type MockMediaListRepository = {
   findById: (id: number, userId: number) => Promise<unknown>;
 };
