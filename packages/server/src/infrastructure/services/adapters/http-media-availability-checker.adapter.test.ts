@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'bun:test';
-import type { Mock } from 'bun:test';
 import { HttpMediaAvailabilityChecker } from './http-media-availability-checker.adapter';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
@@ -154,7 +153,7 @@ describe('HttpMediaAvailabilityChecker', () => {
           year: 2020,
           tmdbId: 1,
           mediaType: MediaTypeVO.movie(),
-        }),
+        },
         MediaItemVO.create({
           title: 'Movie 2',
           year: 2021,
