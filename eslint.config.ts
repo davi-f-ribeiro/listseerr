@@ -96,4 +96,11 @@ export default [
       'react-hooks/incompatible-library': 'off',
     },
   },
+  // Override @typescript-eslint/await-thenable for test files
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/await-thenable': 'off',
+    },
+  },
 ];
