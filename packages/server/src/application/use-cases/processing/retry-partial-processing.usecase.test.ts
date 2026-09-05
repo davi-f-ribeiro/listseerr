@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
-import type { IMediaListRepository } from '@/server/application/repositories/media-list.repository.interface';
-import type { ISeerrConfigRepository } from '@/server/application/repositories/seerr-config.repository.interface';
-import type { IExecutionHistoryRepository } from '@/server/application/repositories/execution-history.repository.interface';
-import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
-import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
-import type { ILogger } from '@/server/application/services/core/logger.interface';
+import { describe, it, expect, beforeEach, vi } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { RetryPartialProcessingUseCase } from '@/server/application/use-cases/processing/retry-partial-processing.usecase';
 import { ExecutionNotFoundError } from 'shared/domain/errors';
+import type { IMediaListRepository } from '@/server/application/repositories/media-list.repository.interface';
+import type { ISeerrConfigRepository } from '@/server/application/repositories/seerr-config.repository.interface';
+import type { IExecutionHistoryRepository } from '@/server/application/repositories/execution-history.repository.interface';
+import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
+import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
+import type { ILogger } from '@/server/application/services/core/logger.interface';
 
 // Mock types
 type MockMediaListRepository = {
@@ -35,20 +35,20 @@ type MockListProcessingService = {
 };
 
 type MockLogger = {
-  info: Mock;
-  debug: Mock;
-  error: Mock;
-  warn: Mock;
+  info: (data: unknown, message: string) => void;
+  debug: (data: unknown, message: string) => void;
+  error: (data: unknown, message: string) => void;
+  warn: (data: unknown, message: string) => void;
 };
 
 describe('RetryPartialProcessingUseCase', () => {
   let useCase: RetryPartialProcessingUseCase;
-  let mockMediaListRepository: Partial<MockMediaListRepository>;
-  let mockSeerrConfigRepository: Partial<MockSeerrConfigRepository>;
-  let mockExecutionHistoryRepository: Partial<MockExecutionHistoryRepository>;
-  let mockMediaFetcherFactory: Partial<MockMediaFetcherFactory>;
-  let mockListProcessingService: Partial<MockListProcessingService>;
-  let mockLogger: Partial<MockLogger>;
+  let mockMediaListRepository: MockMediaListRepository;
+  let mockSeerrConfigRepository: MockSeerrConfigRepository;
+  let mockExecutionHistoryRepository: MockExecutionHistoryRepository;
+  let mockMediaFetcherFactory: MockMediaFetcherFactory;
+  let mockListProcessingService: MockListProcessingService;
+  let mockLogger: MockLogger;
 
   beforeEach(() => {
     mockMediaListRepository = {
@@ -75,12 +75,12 @@ describe('RetryPartialProcessingUseCase', () => {
     };
 
     useCase = new RetryPartialProcessingUseCase(
-      mockMediaListRepository as unknown as IMediaListRepository,
-      mockSeerrConfigRepository as unknown as ISeerrConfigRepository,
-      mockExecutionHistoryRepository as unknown as IExecutionHistoryRepository,
-      mockMediaFetcherFactory as unknown as IMediaFetcherFactory,
-      mockListProcessingService as unknown as IListProcessingService,
-      mockLogger as unknown as ILogger
+      mockMediaListRepository,
+      mockSeerrConfigRepository,
+      mockExecutionHistoryRepository,
+      mockMediaFetcherFactory,
+      mockListProcessingService,
+      mockLogger
     );
   });
 
@@ -88,6 +88,12 @@ describe('RetryPartialProcessingUseCase', () => {
     const userId = 1;
     const listId = 10;
     const executionId = 100;
+
+    const baseExecution = ProcessingExecution.create({
+      listId,
+      batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
+      triggerType: TriggerTypeVO.create('manual'),
+    });
 
     const failedItem: { item: MediaItemVO; error: string } = {
       item: MediaItemVO.create({
@@ -99,10 +105,10 @@ describe('RetryPartialProcessingUseCase', () => {
       error: 'Network error',
     };
 
-    it('should throw ExecutionNotFoundError when execution does not exist', async () => {
+    it('should throw ExecutionNotFoundError when execution does not exist', () => {
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(null);
 
-            expect(
+      expect(() =>
         useCase.execute({
           executionId,
           userId,
@@ -140,11 +146,10 @@ describe('RetryPartialProcessingUseCase', () => {
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const list = {
         id: listId,
-        provider: { getValue: () => 'stevenlu' } as any,
-        url: { getValue: () => 'http://example.com' } as any,
+        provider: { getValue: () => 'stevenlu' },
+        url: { getValue: () => 'http://example.com' },
         maxItems: 50,
         userId,
         enabled: true,
@@ -154,6 +159,7 @@ describe('RetryPartialProcessingUseCase', () => {
       };
 
       mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
+      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({});
       mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([
           failedItem.item,
@@ -173,9 +179,8 @@ describe('RetryPartialProcessingUseCase', () => {
         previouslyRequested: [],
       });
 
-      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        exec['_id'] = 200;
+      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec: ProcessingExecution) => {
+        Object.defineProperty(exec, 'id', { value: 200, writable: true });
         return Promise.resolve(exec);
       });
 
@@ -200,11 +205,10 @@ describe('RetryPartialProcessingUseCase', () => {
       execution.markAsSuccess(10, 8, 2, 0, 0, [failedItem]);
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(execution);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const list = {
         id: listId,
-        provider: { getValue: () => 'stevenlu' } as any,
-        url: { getValue: () => 'http://example.com' } as any,
+        provider: { getValue: () => 'stevenlu' },
+        url: { getValue: () => 'http://example.com' },
         maxItems: 50,
         userId,
         enabled: true,
@@ -214,7 +218,7 @@ describe('RetryPartialProcessingUseCase', () => {
       };
 
       mockMediaListRepository.findById = vi.fn().mockResolvedValue(list);
-      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({} as unknown);
+      mockSeerrConfigRepository.findByUserId = vi.fn().mockResolvedValue({});
       mockMediaFetcherFactory.createFetcher = vi.fn().mockResolvedValue({
         fetchItems: vi.fn().mockResolvedValue([failedItem.item]),
       });
@@ -227,14 +231,11 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       const savedExecutions: ProcessingExecution[] = [];
-      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec: ProcessingExecution) => {
+        Object.defineProperty(exec, 'id', { value: 200, writable: true });
         if (exec.id === 0) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        (exec as any)['_id'] = 200;
           savedExecutions.push(exec);
         } else {
-          (exec as any)['_id'] = 200;
           savedExecutions.push(exec);
         }
         return Promise.resolve(exec);

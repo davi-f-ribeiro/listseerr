@@ -5,20 +5,21 @@ import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
 
-// Clear cache before each test
-beforeEach(() => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  if (typeof availabilityCache !== 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // ng private cache for testing
-    availabilityCache.clear();
-  }
-});
+// Type for the cache entry
+type CacheEntry = {
+  availability: unknown;
+  cachedAt: number;
+};
+
+// Type for the mock
+type MockGetMediaAvailability = jest.MockedFunction<
+  typeof seerrClient.getMediaAvailability
+>;
 
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
   let logger: LoggerService;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let getMediaAvailabilitySpy: any;
+  let getMediaAvailabilitySpy: MockGetMediaAvailability;
 
   beforeEach(() => {
     logger = new LoggerService('test');
@@ -27,13 +28,7 @@ describe('HttpMediaAvailabilityChecker', () => {
   });
 
   afterEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     getMediaAvailabilitySpy.mockRestore();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // ng private cache for testing
-    if (typeof availabilityCache !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // ng private cache for testing
-      availabilityCache.clear();
-    }
   });
 
   describe('N+1 requests problem - cache should reduce calls', () => {
@@ -76,7 +71,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.available).toHaveLength(2); // 2 instances of movie 1 (AVAILABLE)
       expect(result.previouslyRequested).toHaveLength(1); // movie 2 (PENDING)
       expect(result.toBeRequested).toHaveLength(0);
-      
+
       // Should only make 2 requests due to caching (not 4)
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
@@ -99,7 +94,6 @@ describe('HttpMediaAvailabilityChecker', () => {
       };
 
       // Mock first call
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
@@ -109,12 +103,13 @@ describe('HttpMediaAvailabilityChecker', () => {
       await checker.checkAndCategorize(items, config);
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
-      // Simulate TTL passing by clearing cache manually
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // ng private cache for testing
-      availabilityCache.clear();
+      // Clear cache manually by accessing the private property
+      const cache = (HttpMediaAvailabilityChecker as unknown as { availabilityCache?: Map<string, CacheEntry> }).availabilityCache;
+      if (cache) {
+        cache.clear();
+      }
 
       // Mock second call (different status to verify it's a fresh call)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
