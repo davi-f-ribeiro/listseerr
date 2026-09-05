@@ -4,30 +4,15 @@ import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
-import type { SeerrConfig } from '@/server/domain/interfaces/repositories/seerr-config.repository.interface';
 
 // Clear cache before each test
 beforeEach(() => {
-  // @ts-ignore - accessing private cache for testing
+  // @ts-expect-error
   if (typeof availabilityCache !== 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error
     availabilityCache.clear();
   }
 });
-
-const createConfig = (): SeerrConfig => {
-  return {
-    id: 1,
-    userId: 1,
-    url: 'http://seerr:5055',
-    externalUrl: null,
-    apiKey: 'test-key',
-    userIdSeerr: 1,
-    tvSeasons: 'first' as const,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  } as unknown as SeerrConfig;
-};
 
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
@@ -42,9 +27,9 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   afterEach(() => {
     getMediaAvailabilitySpy.mockRestore();
-    // @ts-ignore
+    // @ts-expect-error
     if (typeof availabilityCache !== 'undefined') {
-      // @ts-ignore
+      // @ts-expect-error
       availabilityCache.clear();
     }
   });
@@ -52,71 +37,61 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('N+1 requests problem - cache should reduce calls', () => {
     it('should make only one request per unique item when called multiple times within TTL', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }), // Same item
-        MediaItemVO.create({
-          title: 'Movie 2',
-          year: 2021,
-          tmdbId: 2,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }), // Same item again
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = createConfig();
+      const config: any = {
+        id: 1,
+        userId: 1,
+        url: 'http://seerr:5055',
+        externalUrl: null,
+        apiKey: 'test-key',
+        userIdSeerr: 1,
+        tvSeasons: 'first',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      // Mock responses - only 2 unique items
       getMediaAvailabilitySpy
         .mockResolvedValueOnce({
           id: 1,
           tmdbId: 1,
-          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] }, // AVAILABLE
+          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] },
         })
         .mockResolvedValueOnce({
           id: 2,
           tmdbId: 2,
-          mediaInfo: { id: 2, status: 2, status4k: null, requests: [] }, // PENDING
+          mediaInfo: { id: 2, status: 2, status4k: null, requests: [] },
         });
 
       const result = await checker.checkAndCategorize(items, config);
 
-      // Should still categorize correctly
-      expect(result.available).toHaveLength(2); // 2 instances of movie 1 (AVAILABLE)
-      expect(result.previouslyRequested).toHaveLength(1); // movie 2 (PENDING)
+      expect(result.available).toHaveLength(2);
+      expect(result.previouslyRequested).toHaveLength(1);
       expect(result.toBeRequested).toHaveLength(0);
-
-      // Should only make 2 requests due to caching (not 4)
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
 
     it('should make separate requests after TTL expires', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = createConfig();
+      const config: any = {
+        id: 1,
+        userId: 1,
+        url: 'http://seerr:5055',
+        externalUrl: null,
+        apiKey: 'test-key',
+        userIdSeerr: 1,
+        tvSeasons: 'first',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      // Mock first call
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
@@ -126,15 +101,13 @@ describe('HttpMediaAvailabilityChecker', () => {
       await checker.checkAndCategorize(items, config);
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
-      // Simulate TTL passing by clearing cache manually
-      // @ts-ignore
+      // @ts-expect-error
       availabilityCache.clear();
 
-      // Mock second call (different status to verify it's a fresh call)
       getMediaAvailabilitySpy.mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
-        mediaInfo: { id: 1, status: 2, status4k: null, requests: [] }, // Now PENDING
+        mediaInfo: { id: 1, status: 2, status4k: null, requests: [] },
       });
 
       await checker.checkAndCategorize(items, config);
@@ -144,7 +117,17 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   describe('empty items', () => {
     it('should return empty result for empty input', async () => {
-      const config = createConfig();
+      const config: any = {
+        id: 1,
+        userId: 1,
+        url: 'http://seerr:5055',
+        externalUrl: null,
+        apiKey: 'test-key',
+        userIdSeerr: 1,
+        tvSeasons: 'first',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       const result = await checker.checkAndCategorize([], config);
 
@@ -159,28 +142,27 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('error handling', () => {
     it('should handle errors gracefully', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 2',
-          year: 2021,
-          tmdbId: 2,
-          mediaType: MediaTypeVO.movie(),
-        }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
       ];
 
-      const config = createConfig();
+      const config: any = {
+        id: 1,
+        userId: 1,
+        url: 'http://seerr:5055',
+        externalUrl: null,
+        apiKey: 'test-key',
+        userIdSeerr: 1,
+        tvSeasons: 'first',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      // Mock one success and one error
       getMediaAvailabilitySpy
         .mockResolvedValueOnce({
           id: 1,
           tmdbId: 1,
-          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] }, // AVAILABLE
+          mediaInfo: { id: 1, status: 5, status4k: null, requests: [] },
         })
         .mockRejectedValueOnce(new Error('Network error'));
 
@@ -188,7 +170,7 @@ describe('HttpMediaAvailabilityChecker', () => {
 
       expect(result.available).toHaveLength(1);
       expect(result.errored).toHaveLength(1);
-      expect(result.errored[0].error).toBe('Network error');
+      expect(result.errored[0]!.error).toBe('Network error');
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
   });
