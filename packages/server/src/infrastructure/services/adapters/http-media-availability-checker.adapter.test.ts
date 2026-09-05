@@ -9,7 +9,7 @@ import * as seerrClient from '@/server/infrastructure/services/external/seerr/cl
 beforeEach(() => {
   // @ts-expect-error - accessing private cache for testing
   if (typeof availabilityCache !== 'undefined') {
-    // @ts-expect-error
+    // @ts-expect-error - accessing private cache
     availabilityCache.clear();
   }
 });
@@ -27,9 +27,9 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   afterEach(() => {
     getMediaAvailabilitySpy.mockRestore();
-    // @ts-expect-error
+    // @ts-expect-error - accessing private cache
     if (typeof availabilityCache !== 'undefined') {
-      // @ts-expect-error
+      // @ts-expect-error - accessing private cache
       availabilityCache.clear();
     }
   });
@@ -107,7 +107,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
       // Simulate TTL passing by clearing cache manually
-      // @ts-expect-error
+      // @ts-expect-error - accessing private cache
       availabilityCache.clear();
 
       // Mock second call (different status to verify it's a fresh call)

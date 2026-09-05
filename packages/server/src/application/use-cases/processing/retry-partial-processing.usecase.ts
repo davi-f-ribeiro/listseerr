@@ -4,7 +4,7 @@ import type { IExecutionHistoryRepository } from '@/server/application/repositor
 import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
 import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
 import { ProcessingExecutionMapper } from '@/server/application/mappers/processing-execution.mapper';
-import type { ProcessBatchCommand, RetryPartialProcessingCommand } from 'shared/application/dtos';
+import type { RetryPartialProcessingCommand } from 'shared/application/dtos';
 import type { ProcessBatchResponse } from 'shared/application/dtos';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
 import type { IUseCase } from '@/server/application/use-cases/use-case.interface';
