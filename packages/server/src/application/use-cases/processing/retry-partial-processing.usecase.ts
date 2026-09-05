@@ -4,7 +4,7 @@ import type { IExecutionHistoryRepository } from '@/server/application/repositor
 import type { IMediaFetcherFactory } from '@/server/application/services/media-fetcher-factory.service.interface';
 import type { IListProcessingService } from '@/server/application/services/list-processing.service.interface';
 import { ProcessingExecutionMapper } from '@/server/application/mappers/processing-execution.mapper';
-import type { ProcessBatchCommand } from 'shared/application/dtos';
+import type { RetryPartialProcessingCommand } from 'shared/application/dtos';
 import type { ProcessBatchResponse } from 'shared/application/dtos';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
 import type { IUseCase } from '@/server/application/use-cases/use-case.interface';
@@ -29,7 +29,7 @@ import type { IMediaFetcher } from '@/server/application/services/media-fetcher.
  * 5. Create new execution record with retry status
  * 6. Mark execution as success/error
  */
-export class RetryPartialProcessingUseCase implements IUseCase<ProcessBatchCommand, ProcessBatchResponse> {
+export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProcessingCommand, ProcessBatchResponse> {
   constructor(
     private readonly mediaListRepository: IMediaListRepository,
     private readonly seerrConfigRepository: ISeerrConfigRepository,
@@ -39,7 +39,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<ProcessBatchComma
     private readonly logger: ILogger
   ) {}
 
-  async execute(command: ProcessBatchCommand): Promise<ProcessBatchResponse> {
+  async execute(command: RetryPartialProcessingCommand): Promise<ProcessBatchResponse> {
     this.logger.info(
       { executionId: command.executionId },
       'Starting partial retry of failed items'
