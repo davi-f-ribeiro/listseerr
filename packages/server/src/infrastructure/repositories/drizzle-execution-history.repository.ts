@@ -24,7 +24,7 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
   async findByListId(
     listId: number,
     userId: number,
-    limit: number,
+    limit: number
   ): Promise<ProcessingExecution[]> {
     const rows = await this.db
       .select({
@@ -121,7 +121,9 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
       itemsSkippedAvailable: row.itemsSkippedAvailable,
       itemsSkippedPreviouslyRequested: row.itemsSkippedPreviouslyRequested,
       errorMessage: row.errorMessage,
-      failedItems: row.failedItems ? (JSON.parse(row.failedItems) as Array<{ item: MediaItemVO; error: string }>) : null,
+      failedItems: row.failedItems
+        ? (JSON.parse(row.failedItems) as Array<{ item: MediaItemVO; error: string }>)
+        : null,
     });
   }
 }

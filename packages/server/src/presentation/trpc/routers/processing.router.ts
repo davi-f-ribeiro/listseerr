@@ -18,7 +18,10 @@ export interface ProcessingRouterDeps {
   processListUseCase: IUseCase<ProcessListCommand, ProcessListResponse>;
   processBatchUseCase: IUseCase<ProcessBatchCommand, ProcessBatchResponse>;
   getExecutionHistoryUseCase: IUseCase<GetExecutionHistoryCommand, GetExecutionHistoryResponse>;
-  retryPartialProcessingUseCase: IUseCase<RetryPartialProcessingCommand, RetryPartialProcessingResponse>;
+  retryPartialProcessingUseCase: IUseCase<
+    RetryPartialProcessingCommand,
+    RetryPartialProcessingResponse
+  >;
 }
 
 export function createProcessingRouter(deps: ProcessingRouterDeps) {
@@ -28,7 +31,7 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
         z.object({
           listId: z.number(),
           triggerType: z.enum(['manual', 'scheduled']).default('manual'),
-        }),
+        })
       )
       .mutation(async ({ input, ctx }) => {
         return await deps.processListUseCase.execute({
@@ -50,7 +53,7 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
         z.object({
           listId: z.number(),
           limit: z.number().positive().default(10),
-        }),
+        })
       )
       .query(async ({ input, ctx }) => {
         return await deps.getExecutionHistoryUseCase.execute({
@@ -64,7 +67,7 @@ export function createProcessingRouter(deps: ProcessingRouterDeps) {
       .input(
         z.object({
           executionId: z.number(),
-        }),
+        })
       )
       .mutation(async ({ input, ctx }) => {
         return await deps.retryPartialProcessingUseCase.execute({

@@ -16,21 +16,23 @@ import { MediaListNotFoundError, ExecutionNotFoundError } from 'shared/domain/er
 import { SeerrNotConfiguredError, ProviderNotConfiguredError } from 'shared/domain/errors';
 import type { IMediaFetcher } from '@/server/application/services/media-fetcher.service.interface';
 
-
-export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProcessingCommand, ProcessBatchResponse> {
+export class RetryPartialProcessingUseCase implements IUseCase<
+  RetryPartialProcessingCommand,
+  ProcessBatchResponse
+> {
   constructor(
     private readonly mediaListRepository: IMediaListRepository,
     private readonly seerrConfigRepository: ISeerrConfigRepository,
     private readonly executionHistoryRepository: IExecutionHistoryRepository,
     private readonly mediaFetcherFactory: IMediaFetcherFactory,
     private readonly listProcessingService: IListProcessingService,
-    private readonly logger: ILogger,
+    private readonly logger: ILogger
   ) {}
 
   async execute(command: RetryPartialProcessingCommand): Promise<ProcessBatchResponse> {
     this.logger.info(
       { executionId: command.executionId },
-      'Starting partial retry of failed items',
+      'Starting partial retry of failed items'
     );
 
     const previousExecution = await this.executionHistoryRepository.findById(command.executionId);
@@ -39,10 +41,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
     }
 
     if (!previousExecution.failedItems || previousExecution.failedItems.length === 0) {
-      this.logger.info(
-        { executionId: command.executionId },
-        'No failed items to retry',
-      );
+      this.logger.info({ executionId: command.executionId }, 'No failed items to retry');
       return {
         success: true,
         processedLists: 0,
@@ -71,10 +70,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       .filter(isValidFailedItem)
       .map((f) => f as { item: { tmdbId: number } });
 
-    const list = await this.mediaListRepository.findById(
-      previousExecution.listId,
-      command.userId,
-    );
+    const list = await this.mediaListRepository.findById(previousExecution.listId, command.userId);
     if (!list) {
       throw new MediaListNotFoundError(previousExecution.listId);
     }
@@ -88,14 +84,12 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
 
     this.logger.debug(
       { listId: list.id, provider: list.provider.getValue(), url: list.url.getValue() },
-      'Fetching items from provider for retry',
+      'Fetching items from provider for retry'
     );
     const allItems = await fetcher.fetchItems(list.url.getValue(), list.maxItems);
     this.logger.info({ itemCount: allItems.length }, 'Items fetched from provider for retry');
 
-    const failedTmdbIds = new Set(
-      validFailedItems.map((f) => f.item.tmdbId),
-    );
+    const failedTmdbIds = new Set(validFailedItems.map((f) => f.item.tmdbId));
     const itemsToRetry = allItems.filter((item) => failedTmdbIds.has(item.tmdbId));
 
     this.logger.info(
@@ -105,7 +99,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
         validFailedItems: validFailedItems.length,
         itemsToRetry: itemsToRetry.length,
       },
-      'Failed items filtered for retry',
+      'Failed items filtered for retry'
     );
 
     if (itemsToRetry.length === 0) {
@@ -113,7 +107,7 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
         { executionId: command.executionId },
         validFailedItems.length === 0
           ? 'No valid failed items to retry (data corruption detected)'
-          : 'No items to retry (all failed items may have been removed from source)',
+          : 'No items to retry (all failed items may have been removed from source)'
       );
       return {
         success: true,
@@ -144,13 +138,13 @@ export class RetryPartialProcessingUseCase implements IUseCase<RetryPartialProce
       result.failed.length,
       result.available.length,
       result.previouslyRequested.length,
-      result.failed.length > 0 ? result.failed : null,
+      result.failed.length > 0 ? result.failed : null
     );
     await this.executionHistoryRepository.save(savedExecution);
 
     this.logger.info(
       { executionId: savedExecution.id, originalExecutionId: command.executionId },
-      'Partial retry completed',
+      'Partial retry completed'
     );
 
     return {

@@ -10,7 +10,10 @@ import type { ILogger } from '@/server/application/services/core/logger.interfac
 
 const CACHE_TTL_MS = 60 * 1000;
 
-const availabilityCache = new Map<string, { availability: MediaAvailabilityVO; cachedAt: number }>();
+const availabilityCache = new Map<
+  string,
+  { availability: MediaAvailabilityVO; cachedAt: number }
+>();
 
 const CONCURRENCY_LIMIT = 5;
 
@@ -19,7 +22,7 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
 
   async checkAndCategorize(
     items: MediaItemVO[],
-    config: SeerrConfig,
+    config: SeerrConfig
   ): Promise<CategorizedMediaItems> {
     const result: CategorizedMediaItems = {
       toBeRequested: [],
@@ -78,7 +81,7 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
               : String(settledResult.reason);
           this.logger.warn(
             { tmdbId: item.tmdbId, error: errorMsg },
-            'Availability check failed, treating as errored',
+            'Availability check failed, treating as errored'
           );
           result.errored.push({ item, error: errorMsg });
         }
@@ -106,7 +109,7 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
       tvSeasons: 'first' | 'all';
       createdAt: Date;
       updatedAt: Date;
-    },
+    }
   ): Promise<MediaAvailabilityVO> {
     const response = await getMediaAvailability(item.tmdbId, item.mediaType, configDTO);
 
@@ -129,7 +132,7 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
       tvSeasons: 'first' | 'all';
       createdAt: Date;
       updatedAt: Date;
-    },
+    }
   ): Promise<MediaAvailabilityVO> {
     const cacheKey = `${item.tmdbId}:${item.mediaType.getValue()}`;
     const now = Date.now();

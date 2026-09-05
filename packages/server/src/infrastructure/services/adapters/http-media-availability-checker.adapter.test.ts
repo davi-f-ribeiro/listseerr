@@ -10,17 +10,18 @@ import { SeerrUrlVO } from '@/server/domain/value-objects/seerr-url.vo';
 import { SeerrApiKeyVO } from '@/server/domain/value-objects/seerr-api-key.vo';
 import { SeerrUserIdVO } from '@/server/domain/value-objects/seerr-user-id.vo';
 
-
 describe('HttpMediaAvailabilityChecker', () => {
   let checker: HttpMediaAvailabilityChecker;
   let logger: LoggerService;
   let getMediaAvailabilitySpy: Mock;
 
-  const createConfig = (overrides?: Partial<{
-    url: string;
-    apiKey: string;
-    userIdSeerr: number;
-  }>): SeerrConfig => {
+  const createConfig = (
+    overrides?: Partial<{
+      url: string;
+      apiKey: string;
+      userIdSeerr: number;
+    }>
+  ): SeerrConfig => {
     return new SeerrConfig({
       id: 1,
       userId: 1,
@@ -41,16 +42,36 @@ describe('HttpMediaAvailabilityChecker', () => {
   });
 
   afterEach(() => {
-    (getMediaAvailabilitySpy as import("bun:test").Mock<any>).mockRestore();
+    (getMediaAvailabilitySpy as import('bun:test').Mock<any>).mockRestore();
   });
 
   describe('N+1 requests problem - cache should reduce calls', () => {
     it('should make only one request per unique item when called multiple times within TTL', async () => {
       const items = [
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 2',
+          year: 2021,
+          tmdbId: 2,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
       ];
 
       const config = createConfig();
@@ -78,12 +99,17 @@ describe('HttpMediaAvailabilityChecker', () => {
 
     it('should make separate requests after TTL expires', async () => {
       const items = [
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
       ];
 
       const config = createConfig();
 
-      (getMediaAvailabilitySpy as import("bun:test").Mock<any>).mockResolvedValueOnce({
+      (getMediaAvailabilitySpy as import('bun:test').Mock<any>).mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
         mediaInfo: { id: 1, status: 5, status4k: null, requests: [] },
@@ -95,7 +121,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       // @ts-expect-error — access to private static cache for test isolation
       HttpMediaAvailabilityChecker.availabilityCache?.clear();
 
-      (getMediaAvailabilitySpy as import("bun:test").Mock<any>).mockResolvedValueOnce({
+      (getMediaAvailabilitySpy as import('bun:test').Mock<any>).mockResolvedValueOnce({
         id: 1,
         tmdbId: 1,
         mediaInfo: { id: 1, status: 2, status4k: null, requests: [] },
@@ -123,8 +149,18 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('error handling', () => {
     it('should handle errors gracefully', async () => {
       const items = [
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 2',
+          year: 2021,
+          tmdbId: 2,
+          mediaType: MediaTypeVO.movie(),
+        }),
       ];
 
       const config = createConfig();
