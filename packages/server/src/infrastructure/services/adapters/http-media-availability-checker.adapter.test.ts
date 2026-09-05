@@ -37,10 +37,30 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('N+1 requests problem - cache should reduce calls', () => {
     it('should make only one request per unique item when called multiple times within TTL', async () => {
       const items = [
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 2',
+          year: 2021,
+          tmdbId: 2,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
       ];
 
       const config: any = {
@@ -77,7 +97,12 @@ describe('HttpMediaAvailabilityChecker', () => {
 
     it('should make separate requests after TTL expires', async () => {
       const items = [
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
       ];
 
       const config: any = {
@@ -142,8 +167,18 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('error handling', () => {
     it('should handle errors gracefully', async () => {
       const items = [
-        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
-        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({
+          title: 'Movie 1',
+          year: 2020,
+          tmdbId: 1,
+          mediaType: MediaTypeVO.movie(),
+        }),
+        MediaItemVO.create({
+          title: 'Movie 2',
+          year: 2021,
+          tmdbId: 2,
+          mediaType: MediaTypeVO.movie(),
+        }),
       ];
 
       const config: any = {
