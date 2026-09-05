@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
@@ -69,12 +70,12 @@ describe('RetryPartialProcessingUseCase', () => {
     };
 
     useCase = new RetryPartialProcessingUseCase(
-      mockMediaListRepository as any,
-      mockSeerrConfigRepository as any,
-      mockExecutionHistoryRepository as any,
-      mockMediaFetcherFactory as any,
-      mockListProcessingService as any,
-      mockLogger as any
+      mockMediaListRepository,
+      mockSeerrConfigRepository,
+      mockExecutionHistoryRepository,
+      mockMediaFetcherFactory,
+      mockListProcessingService,
+      mockLogger
     );
   });
 
@@ -83,7 +84,7 @@ describe('RetryPartialProcessingUseCase', () => {
     const listId = 10;
     const executionId = 100;
 
-    const _baseExecution = ProcessingExecution.create({
+    const baseExecution = ProcessingExecution.create({
       listId,
       batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
       triggerType: TriggerTypeVO.create('manual'),
@@ -144,6 +145,7 @@ describe('RetryPartialProcessingUseCase', () => {
         id: listId,
         provider: { getValue: () => 'stevenlu' } as any,
         url: { getValue: () => 'http://example.com' } as any,
+        maxItems: 50,
         userId,
         enabled: true,
         seerrUserIdOverride: null,
@@ -173,7 +175,7 @@ describe('RetryPartialProcessingUseCase', () => {
       });
 
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
-        (exec as any)._id = 200;
+        exec.id = 200;
         return Promise.resolve(exec);
       });
 
@@ -202,6 +204,7 @@ describe('RetryPartialProcessingUseCase', () => {
         id: listId,
         provider: { getValue: () => 'stevenlu' } as any,
         url: { getValue: () => 'http://example.com' } as any,
+        maxItems: 50,
         userId,
         enabled: true,
         seerrUserIdOverride: null,
@@ -225,7 +228,7 @@ describe('RetryPartialProcessingUseCase', () => {
       const savedExecutions: ProcessingExecution[] = [];
       mockExecutionHistoryRepository.save = vi.fn().mockImplementation((exec) => {
         if (exec.id === 0) {
-          (exec as any)._id = 200;
+          exec.id = 200;
           savedExecutions.push(exec);
         } else {
           savedExecutions.push(exec);

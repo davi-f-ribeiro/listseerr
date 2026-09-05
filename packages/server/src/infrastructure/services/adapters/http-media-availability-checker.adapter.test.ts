@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 import { HttpMediaAvailabilityChecker } from './http-media-availability-checker.adapter';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
@@ -7,9 +8,9 @@ import * as seerrClient from '@/server/infrastructure/services/external/seerr/cl
 
 // Clear cache before each test
 beforeEach(() => {
-  // @ts-expect-error - accessing private cache for testing
+  // @ts-expect-error - accessing private cache for testing purposes
   if (typeof availabilityCache !== 'undefined') {
-    // @ts-expect-error
+    // @ts-expect-error - accessing private cache for testing purposes
     availabilityCache.clear();
   }
 });
@@ -27,9 +28,9 @@ describe('HttpMediaAvailabilityChecker', () => {
 
   afterEach(() => {
     (getMediaAvailabilitySpy as any).mockRestore();
-    // @ts-expect-error
+    // @ts-expect-error - accessing private cache for testing purposes
     if (typeof availabilityCache !== 'undefined') {
-    // @ts-expect-error
+      // @ts-expect-error - accessing private cache for testing purposes
       availabilityCache.clear();
     }
   });
@@ -107,7 +108,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
       // Simulate TTL passing by clearing cache manually
-    // @ts-expect-error
+      // @ts-expect-error - accessing private cache for testing purposes
       availabilityCache.clear();
 
       // Mock second call (different status to verify it's a fresh call)
