@@ -62,12 +62,12 @@ export default [
           patterns: [
             {
               group: ['**/shared/src/**'],
-              message: 'Use "shared/..." package imports instead of relative paths.',
+              message: 'Use "shared/...\" package imports instead of relative paths.',
             },
             {
               group: ['shared/**/*.*'],
               message:
-                'Import from index files only (e.g., "shared/domain/types" not "shared/domain/types/provider.types").',
+                'Import from index files only (e.g., \"shared/domain/types\" not \"shared/domain/types/provider.types\").',
             },
           ],
         },
@@ -94,6 +94,12 @@ export default [
     files: ['packages/client/src/components/lists/ListsTable.tsx'],
     rules: {
       'react-hooks/incompatible-library': 'off',
+    },
+  },
+  {
+    files: ['**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/await-thenable': 'off',
     },
   },
 ];
