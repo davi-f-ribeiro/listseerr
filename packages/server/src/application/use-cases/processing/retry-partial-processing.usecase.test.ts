@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'bun:test';
 import { ProcessingExecution } from '@/server/domain/entities/processing-execution.entity';
-import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
@@ -9,31 +8,31 @@ import { ExecutionNotFoundError } from 'shared/domain/errors';
 
 // Mock types
 type MockMediaListRepository = {
-  findById: Mock;
+  findById: any;
 };
 
 type MockSeerrConfigRepository = {
-  findByUserId: Mock;
+  findByUserId: any;
 };
 
 type MockExecutionHistoryRepository = {
-  findById: Mock;
-  save: Mock;
+  findById: any;
+  save: any;
 };
 
 type MockMediaFetcherFactory = {
-  createFetcher: Mock;
+  createFetcher: any;
 };
 
 type MockListProcessingService = {
-  processItems: Mock;
+  processItems: any;
 };
 
 type MockLogger = {
-  info: Mock;
-  debug: Mock;
-  error: Mock;
-  warn: Mock;
+  info: any;
+  debug: any;
+  error: any;
+  warn: any;
 };
 
 describe('RetryPartialProcessingUseCase', () => {
@@ -84,17 +83,10 @@ describe('RetryPartialProcessingUseCase', () => {
     const listId = 10;
     const executionId = 100;
 
-    const baseExecution = ProcessingExecution.create({
-      listId,
-      batchId: BatchIdVO.generate(TriggerTypeVO.create('manual')),
-      triggerType: TriggerTypeVO.create('manual'),
-    });
-
     const failedItem: { item: MediaItemVO; error: string } = {
       item: MediaItemVO.create({
         title: 'Test Movie',
         tmdbId: 123,
-        type: 'movie',
         releaseDate: new Date('2024-01-01'),
       }),
       error: 'Network error',
@@ -161,7 +153,6 @@ describe('RetryPartialProcessingUseCase', () => {
           MediaItemVO.create({
             title: 'Other Movie',
             tmdbId: 456,
-            type: 'movie',
             releaseDate: new Date('2024-01-01'),
           }),
         ]),
@@ -243,9 +234,9 @@ describe('RetryPartialProcessingUseCase', () => {
 
       expect(savedExecutions.length).toBeGreaterThan(0);
       const newExecution = savedExecutions[savedExecutions.length - 1];
-      expect(newExecution.status.isSuccess()).toBe(true);
-      expect(newExecution.itemsFound).toBe(1);
-      expect(newExecution.itemsRequested).toBe(1);
+      expect(newExecution!.status.isSuccess()).toBe(true);
+      expect(newExecution!.itemsFound).toBe(1);
+      expect(newExecution!.itemsRequested).toBe(1);
     });
   });
 });

@@ -4,7 +4,7 @@ import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
-import type { SeerrConfig } from '@/server/domain/interfaces/repositories/seerr-config.repository.interface';
+import type { SeerrConfig } from '../../../../domain/interfaces/repositories/seerr-config.repository.interface';
 
 // Clear cache before each test
 beforeEach(() => {
@@ -52,30 +52,10 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('N+1 requests problem - cache should reduce calls', () => {
     it('should make only one request per unique item when called multiple times within TTL', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }), // Same item
-        MediaItemVO.create({
-          title: 'Movie 2',
-          year: 2021,
-          tmdbId: 2,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }), // Same item again
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }), // Same item
+        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }), // Same item again
       ];
 
       const config = createConfig();
@@ -99,19 +79,14 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(result.available).toHaveLength(2); // 2 instances of movie 1 (AVAILABLE)
       expect(result.previouslyRequested).toHaveLength(1); // movie 2 (PENDING)
       expect(result.toBeRequested).toHaveLength(0);
-
+      
       // Should only make 2 requests due to caching (not 4)
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
 
     it('should make separate requests after TTL expires', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
       ];
 
       const config = createConfig();
@@ -159,18 +134,8 @@ describe('HttpMediaAvailabilityChecker', () => {
   describe('error handling', () => {
     it('should handle errors gracefully', async () => {
       const items = [
-        MediaItemVO.create({
-          title: 'Movie 1',
-          year: 2020,
-          tmdbId: 1,
-          mediaType: MediaTypeVO.movie(),
-        }),
-        MediaItemVO.create({
-          title: 'Movie 2',
-          year: 2021,
-          tmdbId: 2,
-          mediaType: MediaTypeVO.movie(),
-        }),
+        MediaItemVO.create({ title: 'Movie 1', year: 2020, tmdbId: 1, mediaType: MediaTypeVO.movie() }),
+        MediaItemVO.create({ title: 'Movie 2', year: 2021, tmdbId: 2, mediaType: MediaTypeVO.movie() }),
       ];
 
       const config = createConfig();
