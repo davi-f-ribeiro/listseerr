@@ -9,7 +9,7 @@ import * as seerrClient from '@/server/infrastructure/services/external/seerr/cl
 beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   if (typeof availabilityCache !== 'undefined') {
-    // @ts-expect-error - accessing private cache
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // @ts-expect-error accessing private cache for testing
     availabilityCache.clear();
   }
 });
@@ -29,9 +29,9 @@ describe('HttpMediaAvailabilityChecker', () => {
   afterEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     getMediaAvailabilitySpy.mockRestore();
-    // @ts-expect-error - accessing private cache
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // @ts-expect-error accessing private cache for testing
     if (typeof availabilityCache !== 'undefined') {
-      // @ts-expect-error - accessing private cache
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // @ts-expect-error accessing private cache for testing
       availabilityCache.clear();
     }
   });
@@ -110,7 +110,7 @@ describe('HttpMediaAvailabilityChecker', () => {
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(1);
 
       // Simulate TTL passing by clearing cache manually
-      // @ts-expect-error - accessing private cache
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access // @ts-expect-error accessing private cache for testing
       availabilityCache.clear();
 
       // Mock second call (different status to verify it's a fresh call)

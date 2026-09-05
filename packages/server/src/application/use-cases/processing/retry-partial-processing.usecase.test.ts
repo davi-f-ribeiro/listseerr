@@ -41,7 +41,6 @@ type MockLogger = {
   warn: Mock;
 };
 
-// eslint-disable-next-line @typescript-eslint/await-thenable
 describe('RetryPartialProcessingUseCase', () => {
   let useCase: RetryPartialProcessingUseCase;
   let mockMediaListRepository: Partial<MockMediaListRepository>;
@@ -103,7 +102,7 @@ describe('RetryPartialProcessingUseCase', () => {
     it('should throw ExecutionNotFoundError when execution does not exist', async () => {
       mockExecutionHistoryRepository.findById = vi.fn().mockResolvedValue(null);
 
-      await expect(
+            await expect(
         useCase.execute({
           executionId,
           userId,
