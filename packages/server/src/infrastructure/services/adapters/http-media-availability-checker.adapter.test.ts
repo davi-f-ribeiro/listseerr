@@ -3,6 +3,7 @@ import { HttpMediaAvailabilityChecker } from './http-media-availability-checker.
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
+import { SeerrConfig } from '@/server/domain/entities/seerr-config.entity';
 import * as seerrClient from '@/server/infrastructure/services/external/seerr/client';
 
 // Clear cache before each test
@@ -53,7 +54,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
+      } as unknown as SeerrConfig;
 
       // Mock responses - only 2 unique items
       getMediaAvailabilitySpy
@@ -94,7 +95,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
+      } as unknown as SeerrConfig;
 
       // Mock first call
       getMediaAvailabilitySpy.mockResolvedValueOnce({
@@ -134,7 +135,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
+      } as unknown as SeerrConfig;
 
       const result = await checker.checkAndCategorize([], config);
 
@@ -163,7 +164,7 @@ describe('HttpMediaAvailabilityChecker', () => {
         tvSeasons: 'first' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
+      } as unknown as SeerrConfig;
 
       // Mock one success and one error
       getMediaAvailabilitySpy
@@ -178,7 +179,7 @@ describe('HttpMediaAvailabilityChecker', () => {
 
       expect(result.available).toHaveLength(1);
       expect(result.errored).toHaveLength(1);
-      expect(result.errored[0].error).toBe('Network error');
+      expect(result.errored[0]!.error).toBe('Network error');
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
   });
