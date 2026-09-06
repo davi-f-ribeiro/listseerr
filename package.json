@@ -41,13 +41,14 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "ci": "bun run format && bun run db:generate && bun run lint && bun run typecheck && bun test && bun run build",
+    "test": "NODE_ENV=development ENCRYPTION_KEY=dummy_key_for_ci_generation_1234567890abcdef bun test",
     "start": "bun run --env-file .env dist/index.js",
     "db:generate": "cd packages/server && ENCRYPTION_KEY=dummy_key_for_ci_generation_1234567890abcdef bunx --bun drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "bun run --env-file .env packages/server/scripts/migrate.ts",
     "db:reset": "bun run --env-file .env packages/server/scripts/reset.ts",
     "password:reset": "bun run --env-file .env packages/server/scripts/reset-password.ts",
     "dead-code": "bun run --env-file .env knip"
-  },
+   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.9.5",
