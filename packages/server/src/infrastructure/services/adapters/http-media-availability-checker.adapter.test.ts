@@ -15,7 +15,7 @@ describe('HttpMediaAvailabilityChecker', () => {
     userId: 1,
     url: { getValue: () => 'http://seerr:5055' },
     externalUrl: null,
-    apiKey: { getValue: () => 'test-key' },
+    apiKey: *** getValue: () => 'test-key' },
     userIdSeerr: { getValue: () => 1 },
     tvSeasons: 'first',
     createdAt: new Date(),
@@ -177,7 +177,7 @@ describe('HttpMediaAvailabilityChecker', () => {
 
       const config = createMockConfig();
 
-      getMediaAvailabilitySpy.mockImplementation(async (tmdbId: number) => ({
+      getMediaAvailabilitySpy.mockImplementation((tmdbId: number) => ({
         id: tmdbId,
         tmdbId,
         mediaInfo: { id: tmdbId, status: 5, status4k: null, requests: [] },
