@@ -24,13 +24,13 @@ describe('ListseerrMediaSkill', () => {
     updatedAt: new Date(),
   } as unknown as SeerrConfig;
 
-  const mockItems: MediaItemVO[] = [
+  const mockItems: [MediaItemVO, ...MediaItemVO[]] = [
     { tmdbId: 123, mediaType: { getValue: () => 'movie' } } as any,
   ];
 
   it('should return ok: true and preserved data on success', async () => {
     const skill = new ListseerrMediaSkill(mockLogger);
-    
+
     // Mock the adapter implementation to avoid real network calls
     const mockResult = {
       toBeRequested: [],
@@ -38,7 +38,7 @@ describe('ListseerrMediaSkill', () => {
       available: [],
       errored: [],
     };
-    
+
     vi.spyOn(HttpMediaAvailabilityChecker.prototype, 'checkAndCategorize')
       .mockResolvedValue(mockResult);
 
@@ -51,14 +51,14 @@ describe('ListseerrMediaSkill', () => {
 
   it('should return ok: true even if some items errored (partial error)', async () => {
     const skill = new ListseerrMediaSkill(mockLogger);
-    
+
     const mockResultWithPartialErrors = {
       toBeRequested: [],
       previouslyRequested: [],
       available: [],
       errored: [{ item: mockItems[0], error: 'API Timeout for item' }],
     };
-    
+
     vi.spyOn(HttpMediaAvailabilityChecker.prototype, 'checkAndCategorize')
       .mockResolvedValue(mockResultWithPartialErrors);
 
@@ -71,7 +71,7 @@ describe('ListseerrMediaSkill', () => {
 
   it('should return ok: false and a SkillError when the entire operation fails', async () => {
     const skill = new ListseerrMediaSkill(mockLogger);
-    
+
     vi.spyOn(HttpMediaAvailabilityChecker.prototype, 'checkAndCategorize')
       .mockRejectedValue(new Error('Network Connection Lost'));
 
@@ -86,7 +86,7 @@ describe('ListseerrMediaSkill', () => {
 
   it('should map timeout errors to retryable status', async () => {
     const skill = new ListseerrMediaSkill(mockLogger);
-    
+
     vi.spyOn(HttpMediaAvailabilityChecker.prototype, 'checkAndCategorize')
       .mockRejectedValue(new Error('request timeout'));
 
@@ -100,7 +100,7 @@ describe('ListseerrMediaSkill', () => {
 
   it('should map auth errors to non-retryable validation status', async () => {
     const skill = new ListseerrMediaSkill(mockLogger);
-    
+
     vi.spyOn(HttpMediaAvailabilityChecker.prototype, 'checkAndCategorize')
       .mockRejectedValue(new Error('401 Unauthorized'));
 
