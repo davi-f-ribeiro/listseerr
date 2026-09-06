@@ -38,7 +38,8 @@ export class ListseerrMediaSkill {
         data: result
       };
     } catch (error: unknown) {
-      this.logger.error({ error }, 'Skill error occurred while checking media availability');
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error({ error: message }, 'Skill error occurred while checking media availability');
 
       return {
         ok: false,
