@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'bun:test';
+import { describe, it, expect, vi, afterEach } from 'bun:test';
 import { ListseerrMediaSkill } from './listseerr-media.skill';
 import { HttpMediaAvailabilityChecker } from '@/server/infrastructure/services/adapters/http-media-availability-checker.adapter';
 import type { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
@@ -27,6 +27,10 @@ describe('ListseerrMediaSkill', () => {
   const mockItems: [MediaItemVO, ...MediaItemVO[]] = [
     { tmdbId: 123, mediaType: { getValue: () => 'movie' } } as any,
   ];
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   it('should return ok: true and preserved data on success', async () => {
     const skill = new ListseerrMediaSkill(mockLogger);
