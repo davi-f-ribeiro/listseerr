@@ -13,7 +13,7 @@ import type {
 import type { 
   SkillResult, 
   SkillError 
-} from 'shared/src/integration/skill.types';
+} from 'shared/integration';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
 
 export class ListseerrMediaSkill {
@@ -37,7 +37,7 @@ export class ListseerrMediaSkill {
         ok: true,
         data: result
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error({ error }, 'Skill error occurred while checking media availability');
 
       return {
@@ -47,7 +47,7 @@ export class ListseerrMediaSkill {
     }
   }
 
-  private mapErrorToSkillError(error: any): SkillError {
+  private mapErrorToSkillError(error: unknown): SkillError {
     // If the error is already a known domain error, we can use its properties.
     // Otherwise, we map generic JS errors to the contract.
     
