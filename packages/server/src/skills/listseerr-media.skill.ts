@@ -13,7 +13,7 @@ import type {
 import type { 
   SkillResult, 
   SkillError 
-} from 'shared/integration';
+} from 'shared/integration/skill';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
 
 export class ListseerrMediaSkill {
