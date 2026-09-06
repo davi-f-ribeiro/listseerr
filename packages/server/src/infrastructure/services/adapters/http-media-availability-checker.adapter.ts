@@ -8,6 +8,10 @@ import { MediaAvailabilityVO } from '@/server/domain/value-objects/media-availab
 import { getMediaAvailability } from '@/server/infrastructure/services/external/seerr/client';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
 
+export function clearAvailabilityCache() {
+  availabilityCache.clear();
+}
+
 const CACHE_TTL_MS = 60 * 1000;
 
 const availabilityCache = new Map<
