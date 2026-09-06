@@ -10,6 +10,7 @@ import type { ILogger } from '@/server/application/services/core/logger.interfac
 
 export function clearAvailabilityCache() {
   availabilityCache.clear();
+  pendingRequests.clear();
 }
 
 const CACHE_TTL_MS = 60 * 1000;
@@ -18,6 +19,10 @@ const availabilityCache = new Map<
   string,
   { availability: MediaAvailabilityVO; cachedAt: number }
 >();
+
+// Deduplica requisições concorrentes para a mesma chave dentro do mesmo lote,
+// evitando o problema de N+1 quando vários itens iguais são processados em paralelo.
+const pendingRequests = new Map<string, Promise<MediaAvailabilityVO>>();
 
 const CONCURRENCY_LIMIT = 5;
 
@@ -147,10 +152,30 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
       return cached.availability;
     }
 
-    const availability = await this.checkSingleItem(item, configDTO);
-    availabilityCache.set(cacheKey, { availability, cachedAt: now });
-    this.logger.debug({ tmdbId: item.tmdbId, cacheKey }, 'Cache miss, fetched from Seerr');
+    // Se já existe uma requisição em voo para essa mesma chave (ex: itens
+    // duplicados processados concorrentemente no mesmo lote), reaproveita a
+    // mesma promise em vez de disparar uma nova chamada de rede.
+    const existingPending = pendingRequests.get(cacheKey);
+    if (existingPending) {
+      this.logger.debug(
+        { tmdbId: item.tmdbId, cacheKey },
+        'Reusing in-flight request for availability'
+      );
+      return existingPending;
+    }
 
-    return availability;
+    const requestPromise = this.checkSingleItem(item, configDTO)
+      .then((availability) => {
+        availabilityCache.set(cacheKey, { availability, cachedAt: Date.now() });
+        this.logger.debug({ tmdbId: item.tmdbId, cacheKey }, 'Cache miss, fetched from Seerr');
+        return availability;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+
+    pendingRequests.set(cacheKey, requestPromise);
+
+    return requestPromise;
   }
 }
