@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
-import { HttpMediaAvailabilityChecker } from './http-media-availability-checker.adapter';
+import { HttpMediaAvailabilityChecker, clearAvailabilityCache } from './http-media-availability-checker.adapter';
 import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import { MediaTypeVO } from '@/server/domain/value-objects/media-type.vo';
 import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
@@ -23,6 +23,7 @@ describe('HttpMediaAvailabilityChecker', () => {
   });
 
   beforeEach(() => {
+    clearAvailabilityCache();
     logger = new LoggerService('test');
     checker = new HttpMediaAvailabilityChecker(logger);
     getMediaAvailabilitySpy = spyOn(seerrClient, 'getMediaAvailability');
@@ -110,9 +111,10 @@ describe('HttpMediaAvailabilityChecker', () => {
         mediaInfo: { id: 1, status: 2, status4k: null, requests: [] },
       });
 
-      // Simula uma nova instância ou chamada após expiração do cache
-      const freshChecker = new HttpMediaAvailabilityChecker(logger);
-      await freshChecker.checkAndCategorize(items, config);
+      // Simula expiração do cache invalidando-o diretamente,
+      // já que o cache é de escopo de módulo (não por instância)
+      clearAvailabilityCache();
+      await checker.checkAndCategorize(items, config);
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
   });
