@@ -42,7 +42,7 @@
     "format:check": "prettier --check .",
     "ci": "bun run format && bun run db:generate && bun run lint && bun run typecheck && bun test && bun run build",
     "start": "bun run --env-file .env dist/index.js",
-    "db:generate": "ENCRYPTION_KEY=dummy_key_for_ci_generation_1234567890abcdef bun run --env-file .env -- bunx --bun drizzle-kit generate --config packages/server/drizzle.config.ts",
+    "db:generate": "cd packages/server && ENCRYPTION_KEY=dummy_key_for_ci_generation_1234567890abcdef bunx --bun drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "bun run --env-file .env packages/server/scripts/migrate.ts",
     "db:reset": "bun run --env-file .env packages/server/scripts/reset.ts",
     "password:reset": "bun run --env-file .env packages/server/scripts/reset-password.ts",
