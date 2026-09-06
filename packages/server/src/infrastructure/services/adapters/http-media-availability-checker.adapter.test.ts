@@ -16,7 +16,7 @@ describe('HttpMediaAvailabilityChecker', () => {
     url: { getValue: () => 'http://seerr:5055' },
     externalUrl: null,
     apiKey: { getValue: () => 'test-key' },
-    userIdSeerr: 1,
+    userIdSeerr: { getValue: () => 1 },
     tvSeasons: 'first',
     createdAt: new Date(),
     updatedAt: new Date(),
