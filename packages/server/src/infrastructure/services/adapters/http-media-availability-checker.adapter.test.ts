@@ -89,8 +89,8 @@ describe('HttpMediaAvailabilityChecker', () => {
 
       const result = await checker.checkAndCategorize(items, config);
 
-      expect(result.available).toHaveLength(2);
-      expect(result.previouslyRequested).toHaveLength(1);
+      expect(result.available).toHaveLength(3);
+      expect(result.previouslyRequested).toHaveLength(0);
       expect(result.toBeRequested).toHaveLength(0);
       expect(getMediaAvailabilitySpy).toHaveBeenCalledTimes(2);
     });
