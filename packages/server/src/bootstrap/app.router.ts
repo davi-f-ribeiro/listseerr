@@ -19,6 +19,7 @@ import {
   mdblistConfigRouter,
   providersRouter,
   authRouter,
+  skillRouter,
 } from './routers';
 
 export const appRouter = router({
@@ -33,6 +34,7 @@ export const appRouter = router({
   scheduler: schedulerRouter,
   logs: logsRouter,
   dashboard: dashboardRouter,
+  skill: skillRouter,
 });
 
 export type AppRouter = typeof appRouter;
