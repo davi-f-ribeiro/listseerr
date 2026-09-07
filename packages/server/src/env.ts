@@ -22,6 +22,12 @@ export const env = createEnv({
       .string()
       .default('false')
       .transform((v) => v === 'true'),
+    // Service-to-service auth for the skill.* tRPC procedures. Fail-closed:
+    // unless BOTH are set, every skill.* request is rejected with UNAUTHORIZED.
+    // The service user identity comes exclusively from LISTSEERR_SERVICE_USER_ID
+    // (server-side), never from caller input.
+    LISTSEERR_SERVICE_TOKEN: z.string().min(16).optional(),
+    LISTSEERR_SERVICE_USER_ID: z.coerce.number().int().positive().optional(),
   },
 
   /**
