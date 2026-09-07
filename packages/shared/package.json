@@ -6,7 +6,8 @@
   "exports": {
     "./application/*": "./src/application/*/index.ts",
     "./domain/*": "./src/domain/*/index.ts",
-    "./presentation/*": "./src/presentation/*/index.ts"
+    "./presentation/*": "./src/presentation/*/index.ts",
+    "./integration/*": "./src/integration/*/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

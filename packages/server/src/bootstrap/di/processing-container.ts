@@ -148,7 +148,7 @@ export class ProcessingContainer {
         this.mediaFetcherFactory,
         this.listProcessingService,
         this.logger
-      ),
+      ) as unknown as IUseCase<RetryPartialProcessingCommand, RetryPartialProcessingResponse>,
       this.logger,
       'RetryPartialProcessingUseCase'
     );

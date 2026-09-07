@@ -18,15 +18,12 @@ export interface ProcessingRouterDeps {
   processListUseCase: IUseCase<ProcessListCommand, ProcessListResponse>;
   processBatchUseCase: IUseCase<ProcessBatchCommand, ProcessBatchResponse>;
   getExecutionHistoryUseCase: IUseCase<GetExecutionHistoryCommand, GetExecutionHistoryResponse>;
-  retryPartialProcessingUseCase: IUseCase<RetryPartialProcessingCommand, RetryPartialProcessingResponse>;
+  retryPartialProcessingUseCase: IUseCase<
+    RetryPartialProcessingCommand,
+    RetryPartialProcessingResponse
+  >;
 }
 
-/**
- * Processing Router (tRPC)
- *
- * Exposes processing operations via tRPC procedures.
- * Delegates to use cases through injected dependencies.
- */
 export function createProcessingRouter(deps: ProcessingRouterDeps) {
   return router({
     processList: publicProcedure

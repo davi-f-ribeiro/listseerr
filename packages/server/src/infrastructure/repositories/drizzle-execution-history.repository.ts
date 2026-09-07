@@ -6,6 +6,7 @@ import { ProcessingExecution } from '@/server/domain/entities/processing-executi
 import { ExecutionStatusVO } from '@/server/domain/value-objects/execution-status.vo';
 import { TriggerTypeVO } from '@/server/domain/value-objects/trigger-type.vo';
 import { BatchIdVO } from '@/server/domain/value-objects/batch-id.vo';
+import { MediaItemVO } from '@/server/domain/value-objects/media-item.vo';
 import type { IExecutionHistoryRepository } from '@/server/application/repositories/execution-history.repository.interface';
 
 export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepository {
@@ -26,7 +27,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     userId: number,
     limit: number
   ): Promise<ProcessingExecution[]> {
-    // Defense-in-depth: JOIN with mediaLists to ensure the list belongs to the user
     const rows = await this.db
       .select({
         eh: executionHistory,
@@ -54,7 +54,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     const entityExists = await this.exists(execution.id);
 
     if (entityExists) {
-      // Update existing execution
       const [row] = await this.db
         .update(executionHistory)
         .set({
@@ -67,7 +66,7 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
           itemsSkippedPreviouslyRequested: execution.itemsSkippedPreviouslyRequested,
           errorMessage: execution.errorMessage,
           failedItems: execution.failedItems ? JSON.stringify(execution.failedItems) : null,
-          })
+        })
         .where(eq(executionHistory.id, execution.id))
         .returning();
 
@@ -76,7 +75,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
       }
       return this.toDomain(row);
     } else {
-      // Insert new execution
       const [row] = await this.db
         .insert(executionHistory)
         .values({
@@ -97,11 +95,8 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     }
   }
 
-  /**
-   * Check if execution exists in database
-   */
   private async exists(id: number): Promise<boolean> {
-    if (id === 0) return false; // New entities have ID 0
+    if (id === 0) return false;
 
     const [row] = await this.db
       .select({ id: executionHistory.id })
@@ -112,9 +107,6 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
     return !!row;
   }
 
-  /**
-   * Convert Drizzle row to ProcessingExecution domain entity
-   */
   private toDomain(row: typeof executionHistory.$inferSelect): ProcessingExecution {
     return new ProcessingExecution({
       id: row.id,
@@ -130,7 +122,9 @@ export class DrizzleExecutionHistoryRepository implements IExecutionHistoryRepos
       itemsSkippedAvailable: row.itemsSkippedAvailable,
       itemsSkippedPreviouslyRequested: row.itemsSkippedPreviouslyRequested,
       errorMessage: row.errorMessage,
-      failedItems: row.failedItems ? (JSON.parse(row.failedItems) as Array<{ item: MediaItemVO; error: string }>) : null,
+      failedItems: row.failedItems
+        ? (JSON.parse(row.failedItems) as Array<{ item: MediaItemVO; error: string }>)
+        : null,
     });
   }
 }

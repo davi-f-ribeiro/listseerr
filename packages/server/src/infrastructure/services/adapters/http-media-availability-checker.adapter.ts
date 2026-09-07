@@ -8,33 +8,24 @@ import { MediaAvailabilityVO } from '@/server/domain/value-objects/media-availab
 import { getMediaAvailability } from '@/server/infrastructure/services/external/seerr/client';
 import type { ILogger } from '@/server/application/services/core/logger.interface';
 
-/**
- * TTL for availability cache entries (60 seconds)
- * Prevents redundant Seerr API calls within a single processing run
- * while ensuring data doesn't become stale between runs
- */
+export function clearAvailabilityCache() {
+  availabilityCache.clear();
+  pendingRequests.clear();
+}
+
 const CACHE_TTL_MS = 60 * 1000;
 
-/**
- * In-memory cache for media availability results
- * Key: tmdbId:mediaType (e.g., "123:movie")
- * Value: { availability: MediaAvailabilityVO; cachedAt: number }
- */
-const availabilityCache = new Map<string, { availability: MediaAvailabilityVO; cachedAt: number }>();
+const availabilityCache = new Map<
+  string,
+  { availability: MediaAvailabilityVO; cachedAt: number }
+>();
 
-/**
- * Concurrency limit for parallel availability checks
- * Prevents overwhelming Seerr API with too many requests
- */
+// Deduplica requisições concorrentes para a mesma chave dentro do mesmo lote,
+// evitando o problema de N+1 quando vários itens iguais são processados em paralelo.
+const pendingRequests = new Map<string, Promise<MediaAvailabilityVO>>();
+
 const CONCURRENCY_LIMIT = 5;
 
-/**
- * HTTP Media Availability Checker Adapter
- *
- * Implements IMediaAvailabilityChecker by querying Seerr GET endpoints.
- * Uses parallel requests with concurrency control to balance speed and API limits.
- * Implements caching to reduce N+1 calls within a single processing run.
- */
 export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
   constructor(private readonly logger: ILogger) {}
 
@@ -56,7 +47,6 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
     this.logger.info({ totalItems: items.length }, 'Starting media availability check');
     this.logger.debug({ cacheSize: availabilityCache.size }, 'Current cache size');
 
-    // Transform config entity to DTO for external client
     const configDTO = {
       id: config.id,
       userId: config.userId,
@@ -69,20 +59,16 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
       updatedAt: config.updatedAt,
     };
 
-    // Process in chunks with concurrency control
     for (let i = 0; i < items.length; i += CONCURRENCY_LIMIT) {
       const chunk = items.slice(i, i + CONCURRENCY_LIMIT);
 
-      // Check availability for chunk in parallel (now uses cached values when available)
       const checkPromises = chunk.map((item) => this.checkSingleItemWithCache(item, configDTO));
       const chunkResults = await Promise.allSettled(checkPromises);
 
-      // Categorize results
       for (let j = 0; j < chunkResults.length; j++) {
         const settledResult = chunkResults[j];
         const item = chunk[j];
 
-        // Skip if item is undefined (shouldn't happen, but satisfies noUncheckedIndexedAccess)
         if (!settledResult || !item) {
           continue;
         }
@@ -98,7 +84,6 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
             result.available.push(item);
           }
         } else {
-          // On error, treat as failed (skip requesting, report in dashboard)
           const errorMsg =
             settledResult.reason instanceof Error
               ? settledResult.reason.message
@@ -111,7 +96,6 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
         }
       }
 
-      // Log progress for large batches
       if (items.length > CONCURRENCY_LIMIT) {
         const processed = Math.min(i + CONCURRENCY_LIMIT, items.length);
         this.logger.debug({ processed, total: items.length }, 'Availability check progress');
@@ -122,9 +106,6 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
     return result;
   }
 
-  /**
-   * Check availability for a single media item
-   */
   private async checkSingleItem(
     item: MediaItemVO,
     configDTO: {
@@ -141,7 +122,6 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
   ): Promise<MediaAvailabilityVO> {
     const response = await getMediaAvailability(item.tmdbId, item.mediaType, configDTO);
 
-    // Extract status fields from response (null if not found or no mediaInfo)
     const status = response?.mediaInfo?.status ?? null;
     const status4k = response?.mediaInfo?.status4k ?? null;
     const hasRequests = (response?.mediaInfo?.requests?.length ?? 0) > 0;
@@ -149,9 +129,6 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
     return MediaAvailabilityVO.fromCombinedSeerrStatus(status, status4k, hasRequests);
   }
 
-  /**
-   * Check availability with caching to reduce N+1 calls
-   */
   private async checkSingleItemWithCache(
     item: MediaItemVO,
     configDTO: {
@@ -169,18 +146,36 @@ export class HttpMediaAvailabilityChecker implements IMediaAvailabilityChecker {
     const cacheKey = `${item.tmdbId}:${item.mediaType.getValue()}`;
     const now = Date.now();
 
-    // Check cache first
     const cached = availabilityCache.get(cacheKey);
     if (cached && now - cached.cachedAt < CACHE_TTL_MS) {
       this.logger.debug({ tmdbId: item.tmdbId, cacheKey }, 'Cache hit for availability');
       return cached.availability;
     }
 
-    // Fetch from Seerr and cache result
-    const availability = await this.checkSingleItem(item, configDTO);
-    availabilityCache.set(cacheKey, { availability, cachedAt: now });
-    this.logger.debug({ tmdbId: item.tmdbId, cacheKey }, 'Cache miss, fetched from Seerr');
+    // Se já existe uma requisição em voo para essa mesma chave (ex: itens
+    // duplicados processados concorrentemente no mesmo lote), reaproveita a
+    // mesma promise em vez de disparar uma nova chamada de rede.
+    const existingPending = pendingRequests.get(cacheKey);
+    if (existingPending) {
+      this.logger.debug(
+        { tmdbId: item.tmdbId, cacheKey },
+        'Reusing in-flight request for availability'
+      );
+      return existingPending;
+    }
 
-    return availability;
+    const requestPromise = this.checkSingleItem(item, configDTO)
+      .then((availability) => {
+        availabilityCache.set(cacheKey, { availability, cachedAt: Date.now() });
+        this.logger.debug({ tmdbId: item.tmdbId, cacheKey }, 'Cache miss, fetched from Seerr');
+        return availability;
+      })
+      .finally(() => {
+        pendingRequests.delete(cacheKey);
+      });
+
+    pendingRequests.set(cacheKey, requestPromise);
+
+    return requestPromise;
   }
 }
