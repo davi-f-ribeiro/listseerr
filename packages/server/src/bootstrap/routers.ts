@@ -36,6 +36,13 @@ import { createTraktConfigRouter } from '@/server/presentation/trpc/routers/trak
 import { createMdbListConfigRouter } from '@/server/presentation/trpc/routers/mdblist-config.router';
 import { createProvidersRouter } from '@/server/presentation/trpc/routers/providers.router';
 import { createAuthRouter } from '@/server/presentation/trpc/routers/auth.router';
+import { createSkillRouter } from '@/server/presentation/trpc/routers/skill.router';
+
+// Skill router infra (service-to-service boundary; reads env at call time)
+import { DrizzleSeerrConfigRepository } from '@/server/infrastructure/repositories/drizzle-seerr-config.repository';
+import { DrizzleUserRepository } from '@/server/infrastructure/repositories/drizzle-user.repository';
+import { LoggerService } from '@/server/infrastructure/services/core/logger.adapter';
+import { env } from '@/server/env';
 
 // Instantiate containers
 const listsContainer = new ListsContainer(db);
@@ -64,6 +71,16 @@ export const providersRouter = createProvidersRouter({
   getMdbListConfigUseCase: mdbListConfigContainer.getMdbListConfigUseCase,
 });
 export const authRouter = createAuthRouter(authContainer);
+
+// Skill router: service-to-service boundary. Env is read through getters so the
+// fail-closed behavior is explicit at the wiring point.
+export const skillRouter = createSkillRouter({
+  getAuthToken: () => env.LISTSEERR_SERVICE_TOKEN,
+  getServiceUserId: () => env.LISTSEERR_SERVICE_USER_ID,
+  seerrConfigRepository: new DrizzleSeerrConfigRepository(db),
+  userRepository: new DrizzleUserRepository(db),
+  logger: new LoggerService('skill-router'),
+});
 
 // Export processing container for scheduler integration
 export { processingContainer };
